@@ -115,6 +115,22 @@ export async function checkContactAvailable({ email = null, phone = null }) {
   return error ? free : data
 }
 
+/**
+ * تنشئ ملف المستخدم الحالي إن لم يكن موجودًا. تُنادى بعد التسجيل، وعند أول دخول
+ * لأي حساب قديم بلا ملف. الملف شرط لنشر أي بلاغ لأن `reports.user_id` يشير إلى
+ * `profiles`، فبدونه يبقى الحساب عاجزًا.
+ */
+export async function ensureProfile({ fullName, college, phone } = {}) {
+  if (!isSupabaseConfigured) return { created: false, phone_conflict: false }
+  const { data, error } = await supabase.rpc('ensure_profile', {
+    p_full_name: fullName ?? null,
+    p_college: college ?? null,
+    p_phone: phone ?? null,
+  })
+  if (error) throw new Error(toUserMessage(error, 'تعذّر تجهيز ملفك الشخصي.'))
+  return data
+}
+
 export const auth = {
   async getSession() {
     if (!isSupabaseConfigured) return demo.getDemoSession()
@@ -170,9 +186,19 @@ export const auth = {
     const { data, error } = await supabase.auth.signUp({
       email: id.email,
       password,
-      options: { data: { full_name: fullName, college, phone: contactPhone } },
+      options: {
+        data: { full_name: fullName, college, phone: contactPhone },
+        // يُرجع رابط التأكيد إلى العنوان الذي سجّل منه المستخدم فعلًا، بدل
+        // الاعتماد على Site URL وحده الذي يختلف بين التطوير والنشر
+        emailRedirectTo: `${window.location.origin}/auth`,
+      },
     })
     if (error) throw new Error(authMessage(error, 'تعذّر إنشاء الحساب.', id.kind === 'phone'))
+
+    // الملف الشخصي يُنشأ من هنا لا بمُشغِّل على auth.users (انظر هجرة 0010)
+    if (data.session) {
+      await ensureProfile({ fullName, college, phone: contactPhone })
+    }
     return data.session
   },
 

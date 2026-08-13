@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { auth, getProfile } from '../lib/api'
+import { auth, getProfile, ensureProfile } from '../lib/api'
 
 const AuthContext = createContext(null)
 
@@ -62,8 +62,16 @@ export function AuthProvider({ children }) {
       .then((p) => {
         if (active) setProfile(p)
       })
-      .catch(() => {
-        if (active) setProfile(null)
+      .catch(async () => {
+        // حساب بلا ملف شخصي (أُنشئ قبل تجهيز الإنشاء التلقائي): نُنشئه الآن،
+        // وإلا بقي عاجزًا عن نشر بلاغ أو فتح محادثة.
+        try {
+          await ensureProfile()
+          const repaired = await getProfile(userId)
+          if (active) setProfile(repaired)
+        } catch {
+          if (active) setProfile(null)
+        }
       })
     return () => {
       active = false
