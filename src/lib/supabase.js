@@ -7,8 +7,10 @@ import { createClient } from '@supabase/supabase-js'
  * وتتحول طبقة البيانات (src/lib/api.js) إلى المخزن التجريبي. بمجرد وضع القيم
  * في `.env` يعمل نفس الكود على قاعدة البيانات الحقيقية دون أي تغيير آخر.
  */
-const url = import.meta.env.VITE_SUPABASE_URL
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// الشرطة المائلة الأخيرة تُحذف حتى لا تتكوّن مسارات فيها `//` عند نسخ الرابط
+// من لوحة Supabase كما هو.
+const url = (import.meta.env.VITE_SUPABASE_URL ?? '').trim().replace(/\/+$/, '')
+const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim()
 
 /**
  * `VITE_DEMO_MODE=true` يجبر التطبيق على البيانات التجريبية حتى لو كانت

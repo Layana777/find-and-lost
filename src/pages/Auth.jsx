@@ -6,6 +6,7 @@ import { Input } from '../components/ui/Input'
 import { Button } from '../components/ui/Button'
 import { useAuth } from '../context/AuthContext'
 import { validateAuth, hasErrors } from '../lib/validation'
+import { detectIdentifier } from '../lib/identity'
 import { isSupabaseConfigured } from '../lib/api'
 
 const AFTER_SIGNUP = [
@@ -26,7 +27,7 @@ const AFTER_SIGNUP = [
 export default function Auth() {
   const [mode, setMode] = useState('signin')
   const [form, setForm] = useState({
-    email: '',
+    identifier: '',
     password: '',
     fullName: '',
     college: '',
@@ -36,8 +37,9 @@ export default function Auth() {
   const [submitError, setSubmitError] = useState(null)
   const [notice, setNotice] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [sendingReset, setSendingReset] = useState(false)
 
-  const { isAuthenticated, isLoading, signIn, signUp } = useAuth()
+  const { isAuthenticated, isLoading, signIn, signUp, resetPassword } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const destination = location.state?.from || '/reports'
@@ -48,6 +50,9 @@ export default function Auth() {
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
     setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
+
+  // نوع ما كُتب في حقل المعرّف: يحدّد الحقول المعروضة ونصوص المساعدة
+  const identifierKind = detectIdentifier(form.identifier).kind
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -61,10 +66,10 @@ export default function Auth() {
     setSubmitting(true)
     try {
       if (mode === 'signin') {
-        await signIn({ email: form.email.trim(), password: form.password })
+        await signIn({ identifier: form.identifier.trim(), password: form.password })
       } else {
         const session = await signUp({
-          email: form.email.trim(),
+          identifier: form.identifier.trim(),
           password: form.password,
           fullName: form.fullName.trim(),
           college: form.college.trim(),
@@ -72,14 +77,20 @@ export default function Auth() {
         })
         if (!session) {
           // Supabase مضبوط على تأكيد البريد
-          setNotice('أُنشئ الحساب. تفقّد بريدك لتأكيد التسجيل ثم سجّل الدخول.')
+          setNotice(
+            identifierKind === 'phone'
+              ? 'أُنشئ الحساب، لكن الدخول بالجوّال يحتاج تعطيل «تأكيد البريد» في إعدادات المشروع.'
+              : 'أُنشئ الحساب. تفقّد بريدك لتأكيد التسجيل ثم سجّل الدخول.',
+          )
           setMode('signin')
           return
         }
       }
       navigate(destination, { replace: true })
     } catch (error) {
-      setSubmitError(error.message)
+      // الأخطاء الحاملة لاسم حقل تُعرض تحته مباشرة بدل شريط عام
+      if (error.field) setErrors((prev) => ({ ...prev, [error.field]: error.message }))
+      else setSubmitError(error.message)
     } finally {
       setSubmitting(false)
     }
@@ -133,15 +144,19 @@ export default function Auth() {
             ) : null}
 
             <Input
-              label="البريد الجامعي"
-              type="email"
+              label="البريد الجامعي أو رقم الجوّال"
               required
-              placeholder="name@university.edu"
-              value={form.email}
-              onChange={set('email')}
-              error={errors.email}
-              autoComplete="email"
+              placeholder="name@university.edu أو ٠٥xxxxxxxx"
+              value={form.identifier}
+              onChange={set('identifier')}
+              error={errors.identifier}
+              autoComplete="username"
               dir="ltr"
+              hint={
+                mode === 'signup'
+                  ? 'تستطيع التسجيل ببريدك الجامعي أو برقم جوّالك — أيّهما تختار يصبح معرّف دخولك.'
+                  : undefined
+              }
             />
             <Input
               label="كلمة المرور"
@@ -156,14 +171,21 @@ export default function Auth() {
             />
 
             {mode === 'signup' ? (
-              <Input
-                label="رقم الجوّال (اختياري)"
-                value={form.phone}
-                onChange={set('phone')}
-                error={errors.phone}
-                dir="ltr"
-                hint="لا يُعرض لأي مستخدم آخر. يُستعمل للتواصل الإداري عند الحاجة فقط."
-              />
+              // من سجّل برقمه فرقمه هو المعرّف، فلا داعي لطلبه مرة ثانية
+              identifierKind === 'phone' ? (
+                <p className="small muted" style={{ margin: 0 }}>
+                  رقم جوّالك أعلاه هو معرّف دخولك، ولا يُعرض لأي مستخدم آخر.
+                </p>
+              ) : (
+                <Input
+                  label="رقم الجوّال (اختياري)"
+                  value={form.phone}
+                  onChange={set('phone')}
+                  error={errors.phone}
+                  dir="ltr"
+                  hint="لا يُعرض لأي مستخدم آخر. يُستعمل للتواصل الإداري عند الحاجة فقط."
+                />
+              )
             ) : (
               <div className="auth-row">
                 <label className="radio">
@@ -174,15 +196,29 @@ export default function Auth() {
                 <button
                   type="button"
                   className="btn btn-ghost btn-sm"
+                  disabled={sendingReset}
                   onClick={async () => {
-                    if (!form.email.trim()) {
-                      setErrors({ email: 'اكتب بريدك أولًا لإرسال رابط الاستعادة.' })
+                    const identifier = form.identifier.trim()
+                    if (!identifier) {
+                      setErrors({ identifier: 'اكتب بريدك أولًا لإرسال رابط الاستعادة.' })
                       return
                     }
-                    setNotice('إن كان البريد مسجّلًا فسيصلك رابط لإعادة تعيين كلمة المرور.')
+                    setSubmitError(null)
+                    setNotice(null)
+                    setSendingReset(true)
+                    try {
+                      await resetPassword(identifier)
+                      // الرسالة نفسها في كل الحالات حتى لا تكشف من هو مسجّل
+                      setNotice('إن كان البريد مسجّلًا فسيصلك رابط لإعادة تعيين كلمة المرور.')
+                    } catch (error) {
+                      if (error.field) setErrors({ [error.field]: error.message })
+                      else setSubmitError(error.message)
+                    } finally {
+                      setSendingReset(false)
+                    }
                   }}
                 >
-                  نسيت كلمة المرور؟
+                  {sendingReset ? 'جارٍ الإرسال…' : 'نسيت كلمة المرور؟'}
                 </button>
               </div>
             )}
