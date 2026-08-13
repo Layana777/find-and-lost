@@ -206,7 +206,9 @@ function EditProfileDialog({ open, profile, userId, onClose, onSaved }) {
       await onSaved()
       onClose()
     } catch (error) {
-      setSaveError(error.message)
+      // خطأ الحقل (رقم مكرّر مثلًا) يُعرض تحت المُدخل نفسه
+      if (error.field) setErrors((prev) => ({ ...prev, [error.field]: error.message }))
+      else setSaveError(error.message)
     } finally {
       setSaving(false)
     }

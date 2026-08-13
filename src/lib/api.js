@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase'
+import { detectIdentifier, isPhoneEmail, normalizePhone } from './identity'
 import * as demo from './demo/store'
 
 /**
@@ -57,6 +58,63 @@ async function withSignedUrls(report) {
 // المصادقة
 // ══════════════════════════════════════════════════════════════════════════
 
+/**
+ * رسائل GoTrue الشائعة بالعربية. بدونها يرى المستخدم «تعذّر تسجيل الدخول» فقط
+ * وهو لا يعرف أن السبب بريد غير مؤكّد أو حدّ إرسال بلغه المشروع.
+ */
+function authMessage(error, fallback, isPhoneAccount = false) {
+  const text = error?.message || ''
+  const code = error?.code || ''
+
+  if (/Invalid login/i.test(text) || code === 'invalid_credentials') {
+    return isPhoneAccount
+      ? 'رقم الجوّال أو كلمة المرور غير صحيحة.'
+      : 'البريد أو كلمة المرور غير صحيحة.'
+  }
+  if (/Email not confirmed/i.test(text) || code === 'email_not_confirmed') {
+    // حساب الجوّال لا بريد له يُؤكَّد، فالسبب دائمًا إعداد المشروع
+    return isPhoneAccount
+      ? 'الدخول بالجوّال يحتاج تعطيل «تأكيد البريد» في إعدادات المشروع.'
+      : 'لم يُفعّل بريدك بعد. افتح رابط التأكيد المُرسل إلى بريدك ثم أعد المحاولة.'
+  }
+  if (/already registered/i.test(text) || code === 'user_already_exists') {
+    return 'هذا البريد مسجّل مسبقًا.'
+  }
+  if (error?.status === 429 || /rate limit/i.test(text)) {
+    return /email/i.test(text)
+      ? 'تجاوزت حدّ رسائل التأكيد المسموح بها لهذه الساعة. انتظر قليلًا ثم أعد المحاولة.'
+      : 'محاولات كثيرة خلال وقت قصير. انتظر قليلًا ثم أعد المحاولة.'
+  }
+  if (/Password should be/i.test(text)) return 'كلمة المرور قصيرة أو ضعيفة.'
+  if (/signups not allowed|Signups not allowed/i.test(text)) {
+    return 'التسجيل مغلق حاليًا في هذا المشروع.'
+  }
+  return toUserMessage(error, fallback)
+}
+
+/** خطأ يحمل اسم الحقل، لتضعه النماذج تحت المُدخل الصحيح بدل شريط عام. */
+function fieldError(field, message) {
+  const error = new Error(message)
+  error.field = field
+  return error
+}
+
+const IDENTIFIER_HINT = 'اكتب بريدًا إلكترونيًا صحيحًا أو رقم جوّال صحيحًا.'
+
+/**
+ * فحص تكرار البريد/الجوّال قبل الكتابة. الفهرس الفريد في قاعدة البيانات هو
+ * الضمان الفعلي؛ هذا الفحص لعرض رسالة واضحة تحت الحقل بدل خطأ تقني.
+ */
+export async function checkContactAvailable({ email = null, phone = null }) {
+  const free = { email_taken: false, phone_taken: false }
+  if (!isSupabaseConfigured) return free
+  const { data, error } = await supabase.rpc('contact_available', {
+    p_email: email,
+    p_phone: phone,
+  })
+  return error ? free : data
+}
+
 export const auth = {
   async getSession() {
     if (!isSupabaseConfigured) return demo.getDemoSession()
@@ -70,33 +128,51 @@ export const auth = {
     return () => data.subscription.unsubscribe()
   },
 
-  async signIn({ email, password }) {
-    if (!isSupabaseConfigured) return demo.demoSignIn({ email })
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      throw new Error(
-        error.message?.includes('Invalid login')
-          ? 'البريد أو كلمة المرور غير صحيحة.'
-          : toUserMessage(error, 'تعذّر تسجيل الدخول.'),
-      )
-    }
+  /** `identifier`: بريد إلكتروني أو رقم جوّال — يُميَّز تلقائيًا. */
+  async signIn({ identifier, password }) {
+    const id = detectIdentifier(identifier)
+    if (id.kind === 'empty' || id.kind === 'invalid') throw fieldError('identifier', IDENTIFIER_HINT)
+
+    if (!isSupabaseConfigured) return demo.demoSignIn({ email: id.email })
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: id.email,
+      password,
+    })
+    if (error) throw new Error(authMessage(error, 'تعذّر تسجيل الدخول.', id.kind === 'phone'))
     return data.session
   },
 
-  async signUp({ email, password, fullName, college, phone }) {
+  async signUp({ identifier, password, fullName, college, phone }) {
+    const id = detectIdentifier(identifier)
+    if (id.kind === 'empty' || id.kind === 'invalid') throw fieldError('identifier', IDENTIFIER_HINT)
+
+    // من سجّل بجوّاله فرقمه هو المعرّف؛ ومن سجّل ببريده فالرقم حقل اختياري
+    const contactPhone = id.kind === 'phone' ? id.phone : normalizePhone(phone)
+    if (id.kind === 'email' && phone?.trim() && !contactPhone) {
+      throw fieldError('phone', 'صيغة رقم الجوّال غير صحيحة.')
+    }
+
     if (!isSupabaseConfigured) return demo.demoSignUp({ fullName, college })
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName, college, phone } },
+
+    const taken = await checkContactAvailable({
+      email: id.kind === 'email' ? id.email : null,
+      phone: contactPhone,
     })
-    if (error) {
-      throw new Error(
-        error.message?.includes('already registered')
-          ? 'هذا البريد مسجّل مسبقًا.'
-          : toUserMessage(error, 'تعذّر إنشاء الحساب.'),
+    if (taken.email_taken) throw fieldError('identifier', 'هذا البريد مسجّل مسبقًا.')
+    if (taken.phone_taken) {
+      throw fieldError(
+        id.kind === 'phone' ? 'identifier' : 'phone',
+        'رقم الجوّال مسجّل في حساب آخر.',
       )
     }
+
+    const { data, error } = await supabase.auth.signUp({
+      email: id.email,
+      password,
+      options: { data: { full_name: fullName, college, phone: contactPhone } },
+    })
+    if (error) throw new Error(authMessage(error, 'تعذّر إنشاء الحساب.', id.kind === 'phone'))
     return data.session
   },
 
@@ -107,12 +183,21 @@ export const auth = {
     return null
   },
 
-  async resetPassword(email) {
+  /** الاستعادة عبر البريد فقط: حساب الجوّال لا بريد له تُرسل إليه رسالة. */
+  async resetPassword(identifier) {
+    const id = detectIdentifier(identifier)
+    if (id.kind !== 'email') {
+      throw fieldError(
+        'identifier',
+        'استعادة كلمة المرور تحتاج بريدًا إلكترونيًا. إن سجّلت برقم جوّالك فتواصل مع إدارة النظام.',
+      )
+    }
+
     if (!isSupabaseConfigured) return null
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(id.email, {
       redirectTo: `${window.location.origin}/auth`,
     })
-    if (error) throw new Error(toUserMessage(error, 'تعذّر إرسال رابط الاستعادة.'))
+    if (error) throw new Error(authMessage(error, 'تعذّر إرسال رابط الاستعادة.'))
     return null
   },
 }
@@ -566,7 +651,9 @@ export async function getProfile(userId) {
     .eq('user_id', userId)
     .maybeSingle()
 
-  return { ...profile, email: contact?.email ?? null, phone: contact?.phone ?? null }
+  // البريد الداخلي لحسابات الجوّال لا يُعرض للمستخدم
+  const email = isPhoneEmail(contact?.email) ? null : contact?.email ?? null
+  return { ...profile, email, phone: contact?.phone ?? null }
 }
 
 export async function updateProfile(userId, patch) {
@@ -583,12 +670,26 @@ export async function updateProfile(userId, patch) {
     )
   }
   if (patch.phone !== undefined) {
-    unwrap(
-      await supabase
-        .from('profile_contacts')
-        .upsert({ user_id: userId, phone: patch.phone?.trim() || null }, { onConflict: 'user_id' }),
-      'تعذّر حفظ رقم الجوّال.',
-    )
+    const phone = normalizePhone(patch.phone)
+    if (patch.phone?.trim() && !phone) throw fieldError('phone', 'صيغة رقم الجوّال غير صحيحة.')
+
+    if (phone) {
+      const { phone_taken: taken } = await checkContactAvailable({ phone })
+      if (taken) throw fieldError('phone', 'رقم الجوّال مسجّل في حساب آخر.')
+    }
+
+    const { error } = await supabase
+      .from('profile_contacts')
+      .upsert({ user_id: userId, phone }, { onConflict: 'user_id' })
+    // الفهرس الفريد يمسك السباق بين حفظين متزامنين لنفس الرقم
+    if (error) {
+      throw fieldError(
+        'phone',
+        error.code === '23505'
+          ? 'رقم الجوّال مسجّل في حساب آخر.'
+          : toUserMessage(error, 'تعذّر حفظ رقم الجوّال.'),
+      )
+    }
   }
   return getProfile(userId)
 }

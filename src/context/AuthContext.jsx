@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { auth, getProfile } from '../lib/api'
 
@@ -13,6 +13,8 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const queryClient = useQueryClient()
+  // آخر مستخدم رأيناه، لتمييز «تبدّل المستخدم» عن «تجديد رمز الجلسة»
+  const lastUserId = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -32,8 +34,14 @@ export function AuthProvider({ children }) {
       if (!active) return
       setSession(next)
       setStatus(next ? 'authenticated' : 'anonymous')
-      // تغيّر المستخدم يبطل كل ما في الذاكرة المؤقتة من بيانات المستخدم السابق
-      queryClient.clear()
+      // تغيّر المستخدم يبطل كل ما في الذاكرة المؤقتة من بيانات المستخدم السابق.
+      // Supabase يطلق الحدث نفسه عند تجديد الرمز كل ساعة تقريبًا، ومسح الذاكرة
+      // حينها يعيد جلب كل الشاشات بلا سبب — فنقارن هوية المستخدم أولًا.
+      const nextUserId = next?.user?.id ?? null
+      if (lastUserId.current !== nextUserId) {
+        lastUserId.current = nextUserId
+        queryClient.clear()
+      }
     })
 
     return () => {
@@ -81,8 +89,12 @@ export function AuthProvider({ children }) {
     setSession(null)
     setProfile(null)
     setStatus('anonymous')
+    lastUserId.current = null
     queryClient.clear()
   }, [queryClient])
+
+  /** يرسل بريد إعادة تعيين كلمة المرور. لا يكشف إن كان البريد مسجّلًا أم لا. */
+  const resetPassword = useCallback(async (email) => auth.resetPassword(email), [])
 
   const refreshProfile = useCallback(async () => {
     if (!userId) return null
@@ -106,9 +118,10 @@ export function AuthProvider({ children }) {
       signIn,
       signUp,
       signOut,
+      resetPassword,
       refreshProfile,
     }),
-    [status, session, userId, profile, signIn, signUp, signOut, refreshProfile],
+    [status, session, userId, profile, signIn, signUp, signOut, resetPassword, refreshProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
