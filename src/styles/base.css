@@ -569,14 +569,27 @@ select.input {
   white-space: nowrap;
   text-decoration: none;
 }
-.theme-toggle {
+/* زرّا الأيقونات (الإشعارات والوضع) يتشاركان القياس ليقرآ كزوج لا كعنصرين */
+.theme-toggle,
+.nav-icon-link {
   gap: 7px;
   padding-inline: var(--space-2);
 }
 /* الصفّ الواسع مزدحم أصلًا، فتكفي الأيقونة و`aria-label`؛ ويعود النص
    المرئي داخل اللوحة المنسدلة حيث المساحة متاحة. */
-.theme-toggle-text {
+.theme-toggle-text,
+.nav-icon-text {
   display: none;
+}
+/* الشارة ملاصقة للجرس: المسافة من gap الزرّ، لا من هامش .nav-count العام */
+.nav-icon-link .nav-count {
+  margin-inline-start: 0;
+}
+/* :hover مذكور صراحةً وإلا غلبته قاعدة .btn-secondary:hover فضاع تمييز الحالة */
+.nav-icon-link[aria-current='page'],
+.nav-icon-link[aria-current='page']:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-700);
 }
 
 /* زر القائمة: مخفي على الشاشات الواسعة، ويظهر ضمن استعلام 900px أدناه */
@@ -667,11 +680,15 @@ select.input {
   }
   .nav-actions {
     margin: var(--space-3) 0 var(--space-1);
+    /* ثلاثة أزرار قد لا تسع شاشة ضيّقة: تنزل سطرًا بدل أن تنضغط */
+    flex-wrap: wrap;
   }
+  /* تتوسّع بمحتواها لا بالتساوي: «تسجيل الخروج» أطول من الاثنين الآخرين */
   .nav-actions .btn {
-    flex: 1;
+    flex: 1 1 auto;
   }
-  .theme-toggle-text {
+  .theme-toggle-text,
+  .nav-icon-text {
     display: inline;
   }
 }

@@ -14,9 +14,18 @@ const PUBLIC_LINKS = [
 const PRIVATE_LINKS = [
   { to: '/reports/new', label: 'بلاغ جديد' },
   { to: '/chat', label: 'المحادثات' },
-  { to: '/notifications', label: 'الإشعارات', badge: true },
   { to: '/me', label: 'حسابي' },
 ]
+
+/* جرس بوزن الخطّ نفسه المستعمل في أيقونة الوضع الداكن، ليقرأ الاثنان كزوج */
+function BellIcon() {
+  return (
+    <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.4">
+      <path strokeLinejoin="round" d="M15.3 13.5V8.8a5.3 5.3 0 1 0-10.6 0v4.7L3.2 15.4h13.6Z" />
+      <path strokeLinecap="round" d="M8.2 17.2q1.8 2 3.6 0" />
+    </svg>
+  )
+}
 
 /**
  * ترويسة التطبيق: اسم الصحيفة، ثم مسار التنقّل، ثم إجراءات الحساب.
@@ -112,12 +121,32 @@ export function NavBar() {
             {links.map((link) => (
               <NavLink key={link.to} to={link.to} end={link.end} className="nav-link">
                 <span className="nav-link-text">{link.label}</span>
-                {link.badge ? unreadBadge : null}
               </NavLink>
             ))}
           </nav>
 
           <div className="nav-actions">
+            {/* الاسم المنطوق يحمل العدد: الشارة وحدها لا تُقرأ */}
+            {isAuthenticated ? (
+              <NavLink
+                to="/notifications"
+                className="btn btn-secondary nav-icon-link"
+                aria-label={
+                  unread > 0
+                    ? `الإشعارات — ${formatNumber(unread)} غير مقروء`
+                    : 'الإشعارات — لا جديد'
+                }
+                title="الإشعارات"
+              >
+                <BellIcon />
+                <span className="nav-icon-text">الإشعارات</span>
+                {unread > 0 ? (
+                  <span className="nav-count" aria-hidden="true">
+                    {formatNumber(unread)}
+                  </span>
+                ) : null}
+              </NavLink>
+            ) : null}
             <ThemeToggle />
             {isAuthenticated ? (
               <button type="button" className="btn btn-secondary" onClick={handleSignOut}>
