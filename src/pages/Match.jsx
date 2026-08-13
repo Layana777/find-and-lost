@@ -91,6 +91,7 @@ export default function Match() {
             ]}
             connect
             stamp={match.status === 'confirmed' ? 'تم التسليم' : null}
+            track={match.status !== 'confirmed'}
             caption="المسافة بين الموقعين أحد ما تقيسه درجة التطابق — وزن المكان ٣٠ من ١٠٠."
           />
         </section>
