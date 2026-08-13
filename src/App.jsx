@@ -93,14 +93,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireStaff>
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
