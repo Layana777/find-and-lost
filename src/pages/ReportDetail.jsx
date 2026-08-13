@@ -6,9 +6,10 @@ import { Dialog } from '../components/ui/Dialog'
 import { DetailSkeleton } from '../components/ui/Skeleton'
 import { ErrorState } from '../components/ui/ErrorState'
 import { ReportGallery } from '../components/reports/ReportGallery'
+import { CampusMap } from '../components/map/CampusMap'
+import { ReportInterest } from '../components/reports/ReportInterest'
 import { TypeBadge, StatusBadge } from '../components/reports/StatusBadge'
-import { FlagDialog } from '../components/moderation/FlagDialog'
-import { useReport, useStartConversation, useCreateFlag } from '../hooks/useReport'
+import { useReport, useStartConversation } from '../hooks/useReport'
 import { useDeleteReport, useUpdateReportStatus } from '../hooks/useReports'
 import { useAuth } from '../context/AuthContext'
 import { formatDate, formatRelative, formatRef, REPORT_STATUS_LABEL } from '../lib/format'
@@ -16,17 +17,13 @@ import { formatDate, formatRelative, formatRef, REPORT_STATUS_LABEL } from '../l
 export default function ReportDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isAuthenticated, userId, isStaff } = useAuth()
+  const { isAuthenticated, userId } = useAuth()
 
   const { data: report, isPending, isError, error, refetch } = useReport(id)
   const startConversation = useStartConversation()
-  const createFlag = useCreateFlag()
   const deleteReport = useDeleteReport()
   const updateStatus = useUpdateReportStatus()
 
-  const [flagOpen, setFlagOpen] = useState(false)
-  const [flagError, setFlagError] = useState(null)
-  const [flagSent, setFlagSent] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [actionError, setActionError] = useState(null)
 
@@ -51,7 +48,6 @@ export default function ReportDetail() {
   }
 
   const isMine = report.user_id === userId
-  const canModerate = isMine || isStaff
 
   async function contactPublisher() {
     setActionError(null)
@@ -64,21 +60,6 @@ export default function ReportDetail() {
       navigate(`/chat/${conversationId}`)
     } catch (err) {
       setActionError(err.message)
-    }
-  }
-
-  async function submitFlag({ reason, details }) {
-    setFlagError(null)
-    if (!isAuthenticated) {
-      navigate('/auth', { state: { from: `/reports/${id}` } })
-      return
-    }
-    try {
-      await createFlag.mutateAsync({ reportId: report.id, reason, details })
-      setFlagOpen(false)
-      setFlagSent(true)
-    } catch (err) {
-      setFlagError(err.message)
     }
   }
 
@@ -172,32 +153,16 @@ export default function ReportDetail() {
                 </Button>
               </>
             )}
-
-            {!isMine ? (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setFlagError(null)
-                  setFlagOpen(true)
-                }}
-                disabled={flagSent}
-              >
-                {flagSent ? 'أُرسل الإبلاغ' : 'إبلاغ عن محتوى مخالف'}
-              </Button>
-            ) : null}
-
-            {isStaff && !isMine ? (
-              <Button variant="danger" onClick={() => setConfirmDelete(true)}>
-                حذف (إشراف)
-              </Button>
-            ) : null}
           </div>
 
           <p className="small muted" style={{ marginTop: 14 }}>
             لن يُعرض رقم أي طرف. التواصل داخل التطبيق فقط.
           </p>
 
-          {!isMine ? (
+          {/* لكل طرف ما يخصّه هنا: الزائر يُرشَد، وصاحب البلاغ يرى من سأل عنه */}
+          {isMine ? (
+            <ReportInterest reportId={report.id} />
+          ) : (
             <div className="detail-note">
               <div style={{ fontFamily: 'var(--font-heading)', fontSize: 20, marginBottom: 6 }}>
                 هل هذا غرضك؟
@@ -206,17 +171,26 @@ export default function ReportDetail() {
                 ابدأ محادثة مع الناشر، وسيطلب منك تفصيلًا يعرفه المالك وحده قبل التسليم.
               </p>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
 
-      <FlagDialog
-        open={flagOpen}
-        onClose={() => setFlagOpen(false)}
-        onSubmit={submitFlag}
-        submitting={createFlag.isPending}
-        error={flagError}
-      />
+      {report.place ? (
+        <section className="reveal" style={{ marginTop: 44 }}>
+          <h2 className="section-label">أين حدث ذلك</h2>
+          <CampusMap
+            points={[
+              {
+                place: report.place,
+                tone: report.type === 'lost' ? 'lost' : 'found',
+                label: report.type === 'lost' ? 'فُقد هنا' : 'وُجد هنا',
+              },
+            ]}
+            stamp={report.status === 'resolved' ? 'تم الاسترجاع' : null}
+            caption={`المكان كما كتبه الناشر: «${report.place}». الموقع على المخطّط تقريبي.`}
+          />
+        </section>
+      ) : null}
 
       <Dialog
         open={confirmDelete}
@@ -234,7 +208,7 @@ export default function ReportDetail() {
               onClick={async () => {
                 try {
                   await deleteReport.mutateAsync(report.id)
-                  navigate(canModerate && !isMine ? '/admin' : '/me', { replace: true })
+                  navigate('/me', { replace: true })
                 } catch (err) {
                   setActionError(err.message)
                   setConfirmDelete(false)

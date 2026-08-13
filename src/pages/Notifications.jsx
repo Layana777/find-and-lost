@@ -18,7 +18,6 @@ const ACTION_LABEL = {
   new_message: 'فتح المحادثة',
   report_resolved: 'عرض البلاغ',
   report_closed: 'عرض البلاغ',
-  flag_reviewed: 'التفاصيل',
 }
 
 export default function Notifications() {

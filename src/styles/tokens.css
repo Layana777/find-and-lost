@@ -2,9 +2,15 @@
    رموز الهوية البصرية — منقولة حرفيًا من التصميم المرجعي (LostAndFound.html).
    هذا الملف هو المصدر الوحيد للألوان والمسافات والحدود والظلال.
    لا تُضاف ألوان جديدة خارج ما هنا.
+
+   الوضع الداكن: «طبعة الليل» من نفس الصحيفة — لا هوية ثانية. تنقلب سلالم
+   الألوان رأسًا على عقب (100 يبقى أخفت درجة، و900 يبقى أقواها) فتعمل كل
+   قواعد المكوّنات في base.css كما هي دون أي استثناء لوني.
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root {
+  color-scheme: light;
+
   /* الألوان الأربعة المعتمدة في البرومبت، بأسمائها الأصلية */
   --color-surface-base: #f3f2f2;
   --color-ink: #201e1d;
@@ -17,7 +23,6 @@
   --color-text: #201e1d;
   --color-accent: #0088b0;
   --color-accent-2: #d6006c;
-  --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
 
   /* تدرّجات لونية على نفس سلّم الإضاءة — كل خطوة تقابل نظيرتها بصريًا */
   --color-neutral-100: #f8f4f4;
@@ -50,6 +55,12 @@
   --color-accent-2-800: #790e3d;
   --color-accent-2-900: #4b1528;
 
+  /* شدّة ظلّ الورق — تتغيّر وحدها بين الوضعين */
+  --shadow-tint: #2d2b2b;
+  --shadow-a1: 14%;
+  --shadow-a2: 16%;
+  --shadow-a3: 22%;
+
   /* الخطوط: Amiri للعناوين، Noto Naskh Arabic للنصوص */
   --font-heading: 'Amiri', 'Source Serif 4', serif;
   --font-heading-weight: 700;
@@ -66,13 +77,126 @@
   --radius-md: 2px;
   --radius-lg: 4px;
 
-  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
-  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
-  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
-
   /* عرض العمود الأقصى في كل الشاشات، كما في التصميم المرجعي */
   --page-max: 1180px;
   --page-pad: 40px;
+}
+
+/* ── طبعة الليل ──────────────────────────────────────────────────────────
+   الكتلتان التاليتان متطابقتان بالقيم عمدًا: الأولى تتبع تفضيل النظام ما لم
+   يفرض المستخدم الوضع الفاتح، والثانية تتبع اختياره الصريح. أي تعديل على
+   إحداهما يجب أن يُنقل إلى الأخرى.
+   ────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --color-surface-base: #1b1a19;
+    --color-ink: #ece9e6;
+    --color-primary: #4fb9dd;
+    --color-secondary: #ff458e;
+
+    --color-bg: #1b1a19;
+    --color-surface: #232120;
+    --color-text: #ece9e6;
+    --color-accent: #4fb9dd;
+    --color-accent-2: #ff458e;
+
+    --color-neutral-100: #2d2b2b;
+    --color-neutral-200: #444141;
+    --color-neutral-300: #605d5d;
+    --color-neutral-400: #7d7979;
+    --color-neutral-500: #9b9797;
+    --color-neutral-600: #bab6b6;
+    --color-neutral-700: #d7d3d3;
+    --color-neutral-800: #eae7e7;
+    --color-neutral-900: #f8f4f4;
+
+    --color-accent-100: #0a303e;
+    --color-accent-200: #004961;
+    --color-accent-300: #006786;
+    --color-accent-400: #1186ac;
+    --color-accent-500: #38a6cf;
+    --color-accent-600: #62c5ee;
+    --color-accent-700: #99e0ff;
+    --color-accent-800: #cbeeff;
+    --color-accent-900: #e9f8ff;
+
+    --color-accent-2-100: #4b1528;
+    --color-accent-2-200: #790e3d;
+    --color-accent-2-300: #aa0b56;
+    --color-accent-2-400: #d82071;
+    --color-accent-2-500: #ff458e;
+    --color-accent-2-600: #ff90b1;
+    --color-accent-2-700: #ffc0d0;
+    --color-accent-2-800: #ffdee6;
+    --color-accent-2-900: #fff1f4;
+
+    --shadow-tint: #000000;
+    --shadow-a1: 40%;
+    --shadow-a2: 46%;
+    --shadow-a3: 58%;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-surface-base: #1b1a19;
+  --color-ink: #ece9e6;
+  --color-primary: #4fb9dd;
+  --color-secondary: #ff458e;
+
+  --color-bg: #1b1a19;
+  --color-surface: #232120;
+  --color-text: #ece9e6;
+  --color-accent: #4fb9dd;
+  --color-accent-2: #ff458e;
+
+  --color-neutral-100: #2d2b2b;
+  --color-neutral-200: #444141;
+  --color-neutral-300: #605d5d;
+  --color-neutral-400: #7d7979;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #bab6b6;
+  --color-neutral-700: #d7d3d3;
+  --color-neutral-800: #eae7e7;
+  --color-neutral-900: #f8f4f4;
+
+  --color-accent-100: #0a303e;
+  --color-accent-200: #004961;
+  --color-accent-300: #006786;
+  --color-accent-400: #1186ac;
+  --color-accent-500: #38a6cf;
+  --color-accent-600: #62c5ee;
+  --color-accent-700: #99e0ff;
+  --color-accent-800: #cbeeff;
+  --color-accent-900: #e9f8ff;
+
+  --color-accent-2-100: #4b1528;
+  --color-accent-2-200: #790e3d;
+  --color-accent-2-300: #aa0b56;
+  --color-accent-2-400: #d82071;
+  --color-accent-2-500: #ff458e;
+  --color-accent-2-600: #ff90b1;
+  --color-accent-2-700: #ffc0d0;
+  --color-accent-2-800: #ffdee6;
+  --color-accent-2-900: #fff1f4;
+
+  --shadow-tint: #000000;
+  --shadow-a1: 40%;
+  --shadow-a2: 46%;
+  --shadow-a3: 58%;
+}
+
+/* ── قيم مشتقّة: تُحسب من الرموز أعلاه فتتبع الوضعين تلقائيًا ── */
+:root {
+  --color-divider: color-mix(in srgb, var(--color-text) 16%, transparent);
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--shadow-tint) var(--shadow-a1), transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, var(--shadow-tint) var(--shadow-a2), transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, var(--shadow-tint) var(--shadow-a3), transparent);
 
   /* درجات شفافية النص المتكررة — تُستعمل بدل تكرار color-mix في كل مكان */
   --ink-45: color-mix(in srgb, var(--color-text) 45%, transparent);
@@ -82,6 +206,10 @@
   --ink-70: color-mix(in srgb, var(--color-text) 70%, transparent);
   --ink-75: color-mix(in srgb, var(--color-text) 75%, transparent);
   --hairline: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+
+  /* حدّ عناصر التحكّم الشفافة: الخط الشعري (16%) كان حدّها الوحيد ولا يبلغ
+     3:1، فتُرسم بدرجة أقوى. الخطوط الفاصلة في المتن تبقى على --color-divider. */
+  --color-control-border: color-mix(in srgb, var(--color-text) 50%, transparent);
 }
 
 @media (max-width: 720px) {

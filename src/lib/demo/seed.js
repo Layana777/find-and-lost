@@ -174,6 +174,8 @@ export function buildSeed() {
     { id: 'c-harbi', report_id: 'r-wallet-found', initiator_id: 'u-me', created_at: ago(5 * HOUR), last_message_at: ago(40 * MINUTE) },
     { id: 'c-qahtani', report_id: 'r-keys-found', initiator_id: 'u-qahtani', created_at: ago(2 * DAY), last_message_at: ago(1 * DAY + 2 * HOUR) },
     { id: 'c-security', report_id: 'r-idcard-found', initiator_id: 'u-me', created_at: ago(9 * DAY), last_message_at: ago(9 * DAY) },
+    // وارد على بلاغ مفقود لـ u-me: أحدهم وجد السماعات وبدأ المحادثة
+    { id: 'c-shamri', report_id: 'r-buds-lost', initiator_id: 'u-shamri', created_at: ago(3 * HOUR), last_message_at: ago(2 * HOUR) },
   ]
 
   const conversation_members = [
@@ -183,6 +185,8 @@ export function buildSeed() {
     { conversation_id: 'c-qahtani', user_id: 'u-qahtani', last_read_at: ago(1 * DAY) },
     { conversation_id: 'c-security', user_id: 'u-me', last_read_at: ago(9 * DAY) },
     { conversation_id: 'c-security', user_id: 'u-security', last_read_at: ago(9 * DAY) },
+    { conversation_id: 'c-shamri', user_id: 'u-me', last_read_at: ago(4 * HOUR) },
+    { conversation_id: 'c-shamri', user_id: 'u-shamri', last_read_at: ago(2 * HOUR) },
   ]
 
   const messages = [
@@ -193,22 +197,16 @@ export function buildSeed() {
     { id: 'msg-5', conversation_id: 'c-qahtani', sender_id: 'u-qahtani', body: 'المفاتيح وصلتني، جزاك الله خير.', created_at: ago(1 * DAY + 3 * HOUR) },
     { id: 'msg-6', conversation_id: 'c-qahtani', sender_id: 'u-me', body: 'شكرًا لك، وصلت.', created_at: ago(1 * DAY + 2 * HOUR) },
     { id: 'msg-7', conversation_id: 'c-security', sender_id: 'u-security', body: 'البطاقة محفوظة عندنا.', created_at: ago(9 * DAY) },
+    { id: 'msg-8', conversation_id: 'c-shamri', sender_id: 'u-shamri', body: 'لقيت سماعات بيضاء في قاعة ٢٠٣، فيها خدش بالزاوية. أظنها لك.', created_at: ago(2 * HOUR) },
   ]
 
   const notifications = [
     { id: 'n-1', user_id: 'u-me', type: 'match_suggested', title: 'مطابقة محتملة بدرجة ٨٧٪', body: 'بلاغ «محفظة جلدية بنية» يشبه بلاغك ‎#١٠٣١.', link: '/matches/m-wallet', read_at: null, created_at: ago(11 * MINUTE) },
     { id: 'n-2', user_id: 'u-me', type: 'new_message', title: 'رسالة جديدة من س. الحربي', body: 'تمام، أكون عند المكتبة الساعة ٥.', link: '/chat/c-harbi', read_at: null, created_at: ago(40 * MINUTE) },
+    { id: 'n-6', user_id: 'u-me', type: 'new_message', title: 'رسالة جديدة من م. الشمري', body: 'لقيت سماعات بيضاء في قاعة ٢٠٣، فيها خدش بالزاوية. أظنها لك.', link: '/chat/c-shamri', read_at: null, created_at: ago(2 * HOUR) },
     { id: 'n-3', user_id: 'u-me', type: 'match_suggested', title: 'بلاغ جديد في فئة تتابعها', body: 'مفاتيح بميدالية زرقاء — موقف ب.', link: '/reports/r-keys-lost', read_at: null, created_at: ago(9 * HOUR) },
     { id: 'n-4', user_id: 'u-me', type: 'report_resolved', title: 'تم إغلاق بلاغك ‎#٩٨٨', body: 'حُدِّثت الحالة إلى «تم الاسترجاع».', link: '/reports/r-keys-found', read_at: ago(20 * HOUR), created_at: ago(1 * DAY) },
     { id: 'n-5', user_id: 'u-me', type: 'match_rejected', title: 'استُبعدت مطابقة', body: 'أشرت إلى أن بلاغ ‎#٩٧٤ ليس غرضك.', link: '/reports/r-case-found', read_at: ago(3 * DAY), created_at: ago(3 * DAY) },
-  ]
-
-  const report_flags = [
-    { id: 'f-1', report_id: 'r-laptop-lost', reporter_id: 'u-otaibi', reason: 'fake', details: 'البلاغ يعرض جهازًا للبيع لا للفقدان.', status: 'pending', created_at: ago(4 * HOUR), report_label: 'آيفون ١٥ برو — «للبيع»' },
-    { id: 'f-2', report_id: 'r-wired-found', reporter_id: 'u-dosari', reason: 'spam', details: 'نفس البلاغ منشور مرتين.', status: 'pending', created_at: ago(7 * HOUR), report_label: 'محفظة سوداء ‎#١٠٠٩' },
-    { id: 'f-3', report_id: 'r-umbrella-found', reporter_id: 'u-shamri', reason: 'spam', details: 'إعلان تجاري داخل البلاغ.', status: 'pending', created_at: ago(1 * DAY), report_label: 'إعلان خدمة توصيل' },
-    { id: 'f-4', report_id: 'r-earbud-found', reporter_id: 'u-shamri', reason: 'inappropriate', details: 'الصورة غير مناسبة.', status: 'reviewing', created_at: ago(2 * DAY), report_label: 'صورة غير لائقة ‎#٩٩٢' },
-    { id: 'f-5', report_id: 'r-keys-lost', reporter_id: 'u-harbi', reason: 'other', details: 'المكان المذكور غير دقيق.', status: 'resolved', created_at: ago(4 * DAY), report_label: 'مفاتيح ‎#٩٥٥' },
   ]
 
   const match_settings = {
@@ -233,7 +231,6 @@ export function buildSeed() {
     conversation_members,
     messages,
     notifications,
-    report_flags,
     match_settings,
   }
 }

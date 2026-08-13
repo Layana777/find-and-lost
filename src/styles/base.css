@@ -11,6 +11,8 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* الترويسة الملتصقة يجب ألا تحجب هدف أي رابط داخلي */
+  scroll-padding-top: 78px;
 }
 
 body {
@@ -80,7 +82,8 @@ a {
   text-underline-offset: 3px;
 }
 a:hover {
-  color: var(--color-accent);
+  /* لا --color-accent: يهبط إلى 3.65:1 على الورق الفاتح */
+  color: var(--color-accent-800);
 }
 
 img {
@@ -200,7 +203,7 @@ figcaption {
   background: var(--color-accent-700);
 }
 .btn-secondary {
-  border-color: var(--color-divider);
+  border-color: var(--color-control-border);
 }
 .btn-secondary:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-text) 7%, transparent);
@@ -464,65 +467,145 @@ select.input {
   color: var(--color-accent);
 }
 
-/* ── شريط التنقل ── */
-.nav {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
+/* ══ الترويسة وشريط التنقل ══════════════════════════════════════════════
+   ترويسة ملتصقة: اسم الصحيفة، ثم الروابط، ثم إجراءات الحساب. تحت 900px
+   تنطوي الروابط والإجراءات في لوحة يفتحها زر «القائمة» — العناصر نفسها
+   في الحالتين، والتبديل هنا بـ CSS لا بنسخة ثانية في DOM.
+   ══════════════════════════════════════════════════════════════════════ */
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-divider);
+  transition: box-shadow 0.2s ease;
 }
-.nav-main {
+/* الظلّ يفصل الترويسة عن المحتوى المارّ تحتها فقط بعد أن يبدأ التمرير */
+.masthead.is-scrolled {
+  box-shadow: var(--shadow-md);
+}
+.masthead-bar {
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 18px var(--page-pad) 10px;
-  gap: 26px;
-  flex-wrap: wrap;
+  padding: 14px var(--page-pad);
+  display: flex;
+  align-items: center;
+  gap: 28px;
 }
+
 .nav-brand {
-  font-size: 21px;
-  white-space: nowrap;
   flex: none;
-  margin-inline-end: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
   text-decoration: none;
   color: var(--color-text);
+}
+.nav-brand-name {
+  font-size: 21px;
+}
+/* النصّ يأخذ الدرجة ٧٠٠ لا اللون الكامل: اللون الكامل يرسب في تباين ١٤px
+   على الورق الفاتح (3.65:1). اللون الكامل يبقى للخطوط والتعبئة فقط. */
+.nav-brand:hover .nav-brand-name {
+  color: var(--color-accent-700);
 }
 .nav-tagline {
   font-size: 12px;
   font-family: var(--font-body);
   font-weight: 400;
   color: var(--ink-66);
-  margin-inline-start: 10px;
 }
-.nav .btn {
-  text-decoration: none;
+
+.nav-drawer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 28px;
 }
-/* شريط فهرس الشاشات أعلى التنقل */
-.nav-index {
-  max-width: var(--page-max);
-  margin: 0 auto;
-  padding: 12px var(--page-pad) 0;
-  gap: 16px;
-  flex-wrap: wrap;
-  align-items: baseline;
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 26px;
 }
-.nav-index a {
-  font-size: 12px;
-  text-decoration: none;
-  color: var(--ink-60);
-}
-.nav-index a:hover,
-.nav-index a[aria-current='page'] {
-  color: var(--color-accent);
-}
-.nav a {
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
   color: inherit;
   text-decoration: none;
-  font-size: 14px;
 }
-.nav a:hover,
-.nav a[aria-current='page'] {
-  color: var(--color-accent);
+/* الخط السفلي موجود دائمًا وشفاف، فلا يقفز التخطيط عند تغيّر الحالة */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: transparent;
 }
+.nav-link:hover {
+  color: var(--color-accent-700);
+}
+.nav-link:hover::after {
+  background: var(--color-divider);
+}
+.nav-link[aria-current='page'] {
+  color: var(--color-accent-700);
+}
+.nav-link[aria-current='page']::after {
+  background: var(--color-accent);
+}
+
+.nav-actions {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.nav-actions .btn {
+  white-space: nowrap;
+  text-decoration: none;
+}
+.theme-toggle {
+  gap: 7px;
+  padding-inline: var(--space-2);
+}
+/* الصفّ الواسع مزدحم أصلًا، فتكفي الأيقونة و`aria-label`؛ ويعود النص
+   المرئي داخل اللوحة المنسدلة حيث المساحة متاحة. */
+.theme-toggle-text {
+  display: none;
+}
+
+/* زر القائمة: مخفي على الشاشات الواسعة، ويظهر ضمن استعلام 900px أدناه */
+.nav-toggle {
+  display: none;
+  gap: 9px;
+}
+.nav-toggle-bars {
+  display: inline-grid;
+  gap: 3px;
+  width: 15px;
+}
+.nav-toggle-bars i {
+  height: 1.5px;
+  background: currentColor;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
+.nav-toggle[aria-expanded='true'] .nav-toggle-bars i:first-child {
+  transform: translateY(4.5px) rotate(45deg);
+}
+.nav-toggle[aria-expanded='true'] .nav-toggle-bars i:nth-child(2) {
+  opacity: 0;
+}
+.nav-toggle[aria-expanded='true'] .nav-toggle-bars i:last-child {
+  transform: translateY(-4.5px) rotate(-45deg);
+}
+
 .nav-count {
   display: inline-grid;
   place-items: center;
@@ -534,7 +617,63 @@ select.input {
   font-size: 11px;
   font-family: var(--font-body);
   background: var(--color-accent-2);
-  color: #fff;
+  color: var(--color-bg);
+}
+
+/* الشعار الفرعي أول ما يُضحّى به حين يضيق الصف */
+@media (max-width: 1080px) {
+  .nav-tagline {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .masthead-bar {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding-block: 12px;
+  }
+  .nav-toggle {
+    display: inline-flex;
+    margin-inline-start: auto;
+  }
+  .nav-drawer {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .nav-drawer.is-open {
+    display: flex;
+  }
+  .nav-links {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .nav-link {
+    justify-content: space-between;
+    min-height: 48px;
+    padding: 10px 12px;
+    font-size: 15px;
+    border-top: 1px solid var(--color-divider);
+  }
+  .nav-link::after {
+    display: none;
+  }
+  .nav-link[aria-current='page'] {
+    background: var(--color-accent-100);
+  }
+  .nav-actions {
+    margin: var(--space-3) 0 var(--space-1);
+  }
+  .nav-actions .btn {
+    flex: 1;
+  }
+  .theme-toggle-text {
+    display: inline;
+  }
 }
 
 /* ── الجداول ── */
@@ -745,7 +884,8 @@ select.input {
 }
 .stat-label {
   font-size: 13px;
-  color: var(--ink-55);
+  /* لا ink-55: يهبط إلى 3.66:1 على الورق الفاتح عند هذا الحجم */
+  color: var(--ink-70);
 }
 
 .section-label {
@@ -801,26 +941,6 @@ select.input {
     grid-column: 1 / -1;
     justify-self: start;
   }
-}
-
-/* ── لوحة الإدارة ── */
-.category-chip {
-  gap: 6px;
-  padding-inline-end: 5px;
-}
-.chip-remove {
-  border: 0;
-  background: none;
-  cursor: pointer;
-  padding: 0 3px;
-  font-size: 11px;
-  line-height: 1;
-  color: inherit;
-  opacity: 0.65;
-}
-.chip-remove:hover {
-  opacity: 1;
-  color: var(--color-accent-2-700);
 }
 
 /* ── الملف الشخصي ── */
@@ -927,6 +1047,59 @@ select.input {
   margin-top: 40px;
   padding-top: 24px;
   border-top: 1px solid var(--color-divider);
+}
+
+/* ── الاهتمام الوارد ببلاغك (يظهر لصاحب البلاغ وحده) ── */
+.interest {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-divider);
+}
+.interest .section-label {
+  display: flex;
+  align-items: center;
+}
+.interest-empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-70);
+}
+.interest-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.interest-row {
+  display: grid;
+  gap: 2px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.interest-row:hover .interest-name {
+  color: var(--color-accent-700);
+}
+.interest-name {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 16px;
+}
+.interest-college {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--ink-70);
+}
+.interest-preview {
+  font-size: 14px;
+  color: var(--ink-75);
+  /* الرسالة سطر واحد: القائمة فهرس لا نصّ محادثة */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.interest-time {
+  font-size: 12px;
+  color: var(--ink-70);
 }
 
 /* ── شاشة إنشاء البلاغ ── */
@@ -1043,82 +1216,168 @@ select.input {
   }
 }
 
-/* ── شاشة الهبوط ── */
+/* ── شاشة الهبوط ──────────────────────────────────────────────────────────
+   ترتيب صفحة أولى: عنوان عريض، ثم المخطّط دليلًا عليه لا زينة تحته، ثم
+   شريط الأرقام بخطوط أعمدة كما في الصحف، ثم الخطوات فالخصوصية. الخطوط
+   الرفيعة هي ما يفصل الأقسام، فلا يبقى في الصفحة فراغ بلا معنى.
+   ────────────────────────────────────────────────────────────────────── */
 .landing-hero {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 60px;
+  /* العمود هو ما يحدّ عرض العنوان، لا max-width: أي فرق بينهما يترك فجوة */
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 18px 56px;
   align-items: end;
-  padding: 30px 0 50px;
+  padding: 22px 0 36px;
+}
+.landing-kicker {
+  grid-column: 1 / -1;
+  justify-self: start;
 }
 .landing-title {
   font-size: 62px;
-  margin: 14px 0 20px;
-  max-width: 16ch;
+  margin: 0;
+  text-wrap: balance;
+}
+.landing-lead-col {
+  padding-bottom: 6px;
 }
 .landing-lead {
-  font-size: 19px;
-  max-width: 46ch;
+  font-size: 18px;
   color: var(--ink-75);
+  margin: 0;
 }
-.landing-stats {
+.landing-cta {
   display: flex;
-  flex-direction: column;
-  gap: 26px;
-  padding-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
 }
-.landing-stat-value {
+
+/* شريط الأرقام: خطوط أعمدة تمسك الأرقام بدل أن تسبح في الفراغ */
+.landing-figures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 44px;
+  border-top: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-divider);
+}
+.landing-figure {
+  padding: 24px 26px 22px;
+  border-inline-start: 1px solid var(--color-divider);
+}
+.landing-figure:first-child {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+.landing-figure-value {
   font-size: 44px;
+  margin-bottom: 6px;
 }
+
 .landing-how {
-  padding: 50px 0 20px;
+  padding-top: 54px;
+}
+.landing-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.landing-step {
+  padding-inline: 26px;
+  border-inline-start: 1px solid var(--color-divider);
+}
+.landing-step:first-child {
+  border-inline-start: 0;
+  padding-inline-start: 0;
 }
 .landing-step-num {
-  font-size: 26px;
+  display: block;
+  font-size: 38px;
+  line-height: 1;
   color: var(--color-accent-2);
 }
 .landing-step-title {
+  display: block;
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
   font-size: 20px;
-  margin: 6px 0;
+  margin: 10px 0 4px;
 }
+.landing-step-body {
+  font-size: 14px;
+  color: var(--ink-70);
+  margin: 0;
+}
+
 .landing-privacy {
-  padding: 60px 0 10px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: start;
+  margin-top: 58px;
+  padding-top: 46px;
+  border-top: 1px solid var(--color-divider);
+}
+.landing-privacy-title {
+  font-size: 30px;
+  max-width: 20ch;
+}
+.landing-privacy-body {
+  font-size: 16px;
+  max-width: 44ch;
+  color: var(--ink-75);
 }
 .landing-points {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
   margin: 0;
   padding: 0;
   list-style: none;
   font-size: 15px;
   color: var(--ink-75);
 }
+
 @media (max-width: 1000px) {
   .landing-hero,
   .landing-privacy {
     grid-template-columns: 1fr;
-    gap: var(--space-6);
+    gap: var(--space-4);
     align-items: start;
   }
   .landing-title {
     font-size: 40px;
   }
+  .landing-steps {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 30px;
+  }
+  /* أول خطوة في كل صف لا في القائمة كلها هي التي يُلغى خطّها */
+  .landing-step:nth-child(2n + 1) {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
 }
+
 @media (max-width: 720px) {
   .landing-title {
     font-size: 32px;
   }
   .landing-lead {
-    font-size: 17px;
+    font-size: 16px;
   }
-  .landing-stat-value {
+  .landing-figures,
+  .landing-steps {
+    grid-template-columns: 1fr;
+  }
+  .landing-figure,
+  .landing-step {
+    padding-inline: 0;
+    border-inline-start: 0;
+  }
+  .landing-figure + .landing-figure {
+    border-top: 1px solid var(--color-divider);
+  }
+  .landing-figure-value {
     font-size: 34px;
   }
 }
@@ -1546,10 +1805,6 @@ input:focus-visible + .uploader-grid .uploader-empty.is-active,
     grid-template-columns: 84px 1fr 44px;
     gap: 10px;
   }
-  .nav {
-    gap: var(--space-3);
-    padding-inline: var(--page-pad);
-  }
   .seg {
     max-width: 100%;
     overflow-x: auto;
@@ -1568,5 +1823,210 @@ input:focus-visible + .uploader-grid .uploader-empty.is-active,
   }
   .skeleton {
     background: var(--color-neutral-200);
+  }
+}
+
+/* ══ مخطّط الحرم ══════════════════════════════════════════════════════════
+   خريطة منقوشة لا خريطة أقمار صناعية: خطوط شعرية وحروف Amiri، بلا مفتاح
+   API ولا طلب خارجي. الهندسة SVG، والدبابيس HTML فوقها لأن النصّ العربي
+   يحتاج تخطيطًا حقيقيًا. مصدر المواقع src/lib/campus.js.
+   ══════════════════════════════════════════════════════════════════════ */
+.campus-map {
+  margin: 0;
+}
+.campus-map-frame {
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+/* المخطّط لا ينزل تحت هذا العرض وإلا صارت أسماء المواقع غير مقروءة */
+.campus-map-canvas {
+  position: relative;
+  min-width: 560px;
+}
+.campus-map-plan {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.map-boundary {
+  fill: none;
+  stroke: var(--color-divider);
+  stroke-width: 2;
+  stroke-dasharray: 9 7;
+}
+.map-walks path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-text) 16%, transparent);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* حدّ المبنى يبلغ 3:1: على الخريطة الشكلُ نفسه محتوى لا زينة */
+.map-block {
+  fill: color-mix(in srgb, var(--color-text) 7%, transparent);
+  stroke: var(--color-control-border);
+  stroke-width: 1.5;
+}
+.map-block-plaza {
+  fill: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  stroke-dasharray: 5 5;
+}
+.map-gate circle {
+  fill: var(--color-bg);
+  stroke: var(--color-control-border);
+  stroke-width: 1.5;
+}
+.map-gate-core {
+  fill: var(--ink-45);
+  stroke: none;
+}
+.map-labels text {
+  font-family: var(--font-body);
+  font-size: 22px;
+  fill: var(--ink-70);
+}
+
+/* ── الدبابيس ── */
+.map-pin {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  /* القاعدة عند النقطة نفسها، ثم نصف قطر النقطة للأسفل ليقع مركزها عليها */
+  transform: translate(-50%, calc(-100% + 7px));
+  animation: map-pin-drop 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.map-pin-lost {
+  --pin: var(--color-accent-2);
+  --pin-ink: var(--color-accent-2-800);
+  --pin-wash: var(--color-accent-2-100);
+}
+.map-pin-found,
+.map-pin-done {
+  --pin: var(--color-accent);
+  --pin-ink: var(--color-accent-800);
+  --pin-wash: var(--color-accent-100);
+}
+.map-pin-flag {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 5px 11px;
+  background: var(--pin-wash);
+  border: 1px solid var(--pin);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--pin-ink);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+.map-pin-place {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 11px;
+}
+.map-pin-stem {
+  width: 1px;
+  height: 16px;
+  background: var(--pin);
+}
+.map-pin-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pin);
+  box-shadow: 0 0 0 3px var(--color-surface);
+}
+
+/* المسار بين الفقد والعثور: يُرسم رسمًا لا يظهر دفعة واحدة */
+.map-connector {
+  fill: none;
+  stroke: var(--color-accent-600);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: map-connector-draw 0.9s ease-out 0.5s both;
+}
+
+/* ختم «تم الاسترجاع» — يهبط بعد استقرار الدبابيس */
+.map-stamp {
+  position: absolute;
+  inset-inline-end: 4%;
+  bottom: 6%;
+  padding: 5px 15px;
+  border: 2px solid var(--color-accent-700);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 19px;
+  color: var(--color-accent-700);
+  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+  transform: rotate(-7deg);
+  animation: map-stamp-press 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.75s both;
+}
+
+.campus-map-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: var(--space-2);
+  font-size: 12px;
+  color: var(--ink-70);
+}
+.map-unplaced {
+  color: var(--ink-60);
+}
+
+@keyframes map-pin-drop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 12px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, calc(-100% + 7px));
+  }
+}
+@keyframes map-connector-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes map-stamp-press {
+  from {
+    opacity: 0;
+    transform: rotate(-7deg) scale(1.7);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-7deg) scale(1);
+  }
+}
+
+/* ── ظهور هادئ لكتل المحتوى ── */
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.reveal {
+  animation: reveal-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (max-width: 900px) {
+  .nav-drawer.is-open {
+    animation: reveal-rise 0.2s ease-out both;
   }
 }

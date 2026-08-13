@@ -101,8 +101,6 @@ export function AuthProvider({ children }) {
       userId,
       profile,
       role: profile?.role ?? 'user',
-      isStaff: profile?.role === 'moderator' || profile?.role === 'admin',
-      isAdmin: profile?.role === 'admin',
       signIn,
       signUp,
       signOut,

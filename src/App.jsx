@@ -16,7 +16,6 @@ const Match = lazy(() => import('./pages/Match'))
 const Chat = lazy(() => import('./pages/Chat'))
 const Notifications = lazy(() => import('./pages/Notifications'))
 const Profile = lazy(() => import('./pages/Profile'))
-const Admin = lazy(() => import('./pages/Admin'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 function RouteFallback() {
@@ -83,14 +82,6 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requireStaff>
-                <Admin />
               </ProtectedRoute>
             }
           />

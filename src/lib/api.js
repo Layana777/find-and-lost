@@ -133,35 +133,6 @@ export async function listCategories() {
   )
 }
 
-export async function createCategory(name) {
-  if (!isSupabaseConfigured) return demo.demoCreateCategory(name)
-  return unwrap(
-    await supabase
-      .from('categories')
-      .insert({ name: name.trim(), slug: slugify(name) })
-      .select()
-      .single(),
-    'تعذّر إضافة الفئة.',
-  )
-}
-
-export async function deleteCategory(id) {
-  if (!isSupabaseConfigured) return demo.demoDeleteCategory(id)
-  return unwrap(
-    await supabase.from('categories').update({ is_active: false }).eq('id', id),
-    'تعذّر حذف الفئة.',
-  )
-}
-
-function slugify(name) {
-  return (
-    name
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\p{L}\p{N}-]/gu, '') || `cat-${Date.now()}`
-  )
-}
 
 export async function getMatchSettings() {
   if (!isSupabaseConfigured) return demo.demoGetMatchSettings()
@@ -170,18 +141,6 @@ export async function getMatchSettings() {
     'تعذّر تحميل إعدادات المطابقة.',
   )
 }
-
-export async function updateMatchSettings(patch) {
-  if (!isSupabaseConfigured) return demo.demoUpdateMatchSettings(patch)
-  return unwrap(
-    await supabase.from('match_settings').update(patch).eq('id', 1).select().single(),
-    'تعذّر حفظ الإعدادات.',
-  )
-}
-
-// ══════════════════════════════════════════════════════════════════════════
-// البلاغات
-// ══════════════════════════════════════════════════════════════════════════
 
 export async function listReports(filters = {}) {
   if (!isSupabaseConfigured) return demo.demoListReports(filters)
@@ -624,70 +583,6 @@ export async function getProfileStats(userId) {
     conversations: conversations ?? 0,
   }
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// الإبلاغ والإشراف
-// ══════════════════════════════════════════════════════════════════════════
-
-export async function createFlag({ reportId, reason, details, userId }) {
-  if (!isSupabaseConfigured) return demo.demoCreateFlag({ reportId, reason, details })
-  const { error } = await supabase
-    .from('report_flags')
-    .insert({ report_id: reportId, reporter_id: userId, reason, details: details || '' })
-  if (error) {
-    throw new Error(
-      error.code === '23505'
-        ? 'سبق أن أبلغت عن هذا البلاغ.'
-        : toUserMessage(error, 'تعذّر إرسال الإبلاغ.'),
-    )
-  }
-  return null
-}
-
-export async function listFlags(status = 'pending') {
-  if (!isSupabaseConfigured) return demo.demoListFlags(status)
-
-  let query = supabase
-    .from('report_flags')
-    .select(
-      'id, report_id, reason, details, status, created_at, reporter:profiles!report_flags_reporter_id_fkey ( id, full_name ), report:reports ( id, ref, title )',
-    )
-    .order('created_at', { ascending: false })
-
-  if (status !== 'all') query = query.eq('status', status)
-  const rows = unwrap(await query, 'تعذّر تحميل الإبلاغات.')
-  return rows.map((f) => ({ ...f, report_label: f.report?.title || 'بلاغ محذوف' }))
-}
-
-export async function moderateFlag(flagId, action) {
-  if (!isSupabaseConfigured) return demo.demoModerateFlag(flagId, action)
-  return unwrap(
-    await supabase.rpc('moderate_flag', { p_flag_id: flagId, p_action: action }),
-    'تعذّر تنفيذ الإجراء.',
-  )
-}
-
-export async function getAdminStats() {
-  if (!isSupabaseConfigured) return demo.demoAdminStats()
-
-  const [total, active, suggested, pendingFlags] = await Promise.all([
-    supabase.from('reports').select('id', { count: 'exact', head: true }),
-    supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-    supabase.from('matches').select('id', { count: 'exact', head: true }).eq('status', 'suggested'),
-    supabase.from('report_flags').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-  ])
-
-  return {
-    total: total.count ?? 0,
-    active: active.count ?? 0,
-    suggested: suggested.count ?? 0,
-    pendingFlags: pendingFlags.count ?? 0,
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════
-// الاشتراك اللحظي — Realtime عند الربط، بث محلي في الوضع التجريبي
-// ══════════════════════════════════════════════════════════════════════════
 
 export function subscribeToTable({ table, filter, event = '*', onChange }) {
   if (!isSupabaseConfigured) {

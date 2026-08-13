@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import { qk } from '../lib/queryKeys'
-import { getReport, startConversation, createFlag } from '../lib/api'
+import { getReport, startConversation } from '../lib/api'
 
 export function useReport(id) {
   return useQuery({
@@ -25,14 +25,3 @@ export function useStartConversation() {
   })
 }
 
-export function useCreateFlag() {
-  const { userId } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ reportId, reason, details }) =>
-      createFlag({ reportId, reason, details, userId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-flags'] })
-    },
-  })
-}

@@ -21,6 +21,16 @@ describe('الشاشات الرئيسية', () => {
     )
   })
 
+  it('الهبوط يبني بنيته: مخطّط، ثلاثة أرقام، أربع خطوات', () => {
+    const { container } = renderWithProviders(<Landing />)
+    // المخطّط يبرهن جملة العنوان، فدبّوساه ومسارهما جزء من المحتوى لا زينة
+    expect(container.querySelectorAll('.map-pin')).toHaveLength(2)
+    expect(container.querySelector('.map-connector')).toBeTruthy()
+    expect(container.querySelectorAll('.landing-figure')).toHaveLength(3)
+    // الخطوات قائمة مرقّمة دلاليًا لأن ترتيبها معنى لا تنسيق
+    expect(container.querySelectorAll('ol.landing-steps > li')).toHaveLength(4)
+  })
+
   it('الرئيسية تعرض البلاغات بعد التحميل', async () => {
     renderWithProviders(<Home />, { route: '/reports' })
     await waitFor(() =>
@@ -65,6 +75,63 @@ describe('الشاشات الرئيسية', () => {
     ).toBeInTheDocument()
     // لا يظهر أي رقم جوّال في الشاشة العامة
     expect(document.body.textContent).not.toMatch(/\+966/)
+  })
+
+  /* مسار التواصل هو قلب التطبيق: من وجد غرضًا لا بدّ أن يجد طريقًا إلى صاحبه. */
+  describe('زر التواصل على بلاغ غيرك', () => {
+    const detail = (id, signedIn) =>
+      renderWithProviders(
+        <Routes>
+          <Route path="/reports/:id" element={<ReportDetail />} />
+        </Routes>,
+        { route: `/reports/${id}`, signedIn },
+      )
+
+    it('يظهر لمن يملك حسابًا', async () => {
+      detail('r-keys-lost', true)
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'تواصل مع الناشر' })).toBeEnabled(),
+      )
+      expect(screen.getByRole('button', { name: 'هذا غرضي' })).toBeEnabled()
+    })
+
+    it('يظهر للزائر أيضًا — يحوّله الضغط إلى التسجيل لا إلى طريق مسدود', async () => {
+      detail('r-keys-lost', false)
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'تواصل مع الناشر' })).toBeInTheDocument(),
+      )
+    })
+
+    it('لا يظهر على بلاغك أنت — تظهر إدارة البلاغ بدله', async () => {
+      detail('r-buds-lost', true)
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'تم الاسترجاع' })).toBeInTheDocument(),
+      )
+      expect(screen.queryByRole('button', { name: 'تواصل مع الناشر' })).toBeNull()
+    })
+
+    /* الوجه الآخر: صاحب البلاغ يرى من سأل عنه، وإلا بقيت صفحته صامتة */
+    it('صاحب البلاغ يرى من تواصل معه ورابط المحادثة', async () => {
+      detail('r-buds-lost', true)
+      await waitFor(() => expect(screen.getByText('من تواصل معك — ١')).toBeInTheDocument())
+      const row = screen.getByRole('link', { name: /م\. الشمري/ })
+      expect(row).toHaveAttribute('href', '/chat/c-shamri')
+    })
+
+    it('صاحب بلاغ لم يسأل عنه أحد يرى حالة فارغة تشرح لا فراغًا', async () => {
+      detail('r-wallet-lost', true)
+      await waitFor(() =>
+        expect(screen.getByText(/لم يسأل أحد عن هذا البلاغ بعد/)).toBeInTheDocument(),
+      )
+    })
+
+    it('قسم «من تواصل معك» لا يظهر على بلاغ غيرك', async () => {
+      detail('r-keys-lost', true)
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'تواصل مع الناشر' })).toBeEnabled(),
+      )
+      expect(screen.queryByText(/من تواصل معك/)).toBeNull()
+    })
   })
 
   it('تفاصيل بلاغ غير موجود تعرض حالة خطأ لا شاشة بيضاء', async () => {

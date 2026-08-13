@@ -8,12 +8,11 @@ import {
   demoListReports,
   demoConfirmMatch,
   demoGetMatch,
-  demoCreateFlag,
 } from './store'
 
 /**
  * اختبارات على المخزن التجريبي — تغطي القواعد التي يجب أن تصمد في Supabase
- * أيضًا: منع تكرار الرسائل والمحادثات والمطابقات والإبلاغات.
+ * أيضًا: منع تكرار الرسائل والمحادثات والمطابقات.
  */
 beforeEach(() => {
   localStorage.clear()
@@ -98,15 +97,6 @@ describe('منع تكرار المطابقات', () => {
     expect(match.status).toBe('confirmed')
     expect(match.lost_report.status).toBe('claimed')
     expect(match.found_report.status).toBe('claimed')
-  })
-})
-
-describe('منع تكرار الإبلاغ', () => {
-  it('الإبلاغ عن نفس البلاغ مرتين يُرفض', async () => {
-    await demoCreateFlag({ reportId: 'r-card-found', reason: 'spam', details: '' })
-    await expect(
-      demoCreateFlag({ reportId: 'r-card-found', reason: 'spam', details: '' }),
-    ).rejects.toThrow()
   })
 })
 

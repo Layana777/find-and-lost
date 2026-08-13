@@ -42,7 +42,7 @@ npm run dev
 `src/lib/api.js`، وهي التي تختار المسار.
 
 في الوضع التجريبي يدخلك أي بريد وكلمة مرور من ٨ أحرف إلى حساب العرض
-(«عبدالله الزهراني»، بدور `admin` حتى تظهر لوحة الإدارة).
+(«عبدالله الزهراني»).
 
 ---
 
@@ -77,7 +77,7 @@ supabase db push
 | `…000100_tables.sql` | الجداول والقيود |
 | `…000200_indexes.sql` | الفهارس، ومنها فهارس `gin_trgm_ops` للبحث التقريبي |
 | `…000300_rls.sql` | دوال الصلاحيات وسياسات RLS على كل جدول |
-| `…000400_functions.sql` | دوال المحادثات والمطابقة والإشراف |
+| `…000400_functions.sql` | دوال المحادثات والمطابقة |
 | `…000500_storage.sql` | bucket الصور وسياساته |
 | `…000600_seed_categories.sql` | الفئات الأولية |
 
@@ -134,16 +134,6 @@ supabase functions deploy match-report --no-verify-jwt
 | URL | `https://<project-ref>.supabase.co/functions/v1/match-report` |
 | HTTP Headers | `x-webhook-secret: <نفس قيمة MATCH_WEBHOOK_SECRET>` |
 
-### ٧) ترقية مستخدم إلى مشرف
-
-لوحة الإدارة `/admin` متاحة لدور `moderator` أو `admin` فقط. الترقية من محرّر SQL
-(لا يمكن فعلها من الواجهة — انظر «منع تصعيد الصلاحيات» أدناه):
-
-```sql
-update public.profiles set role = 'admin'
-where id = (select id from auth.users where email = 'you@university.edu');
-```
-
 ---
 
 ## الأمان والخصوصية
@@ -184,7 +174,7 @@ where id = (select id from auth.users where email = 'you@university.edu');
 
 5. عند الدرجة **≥ ٧٠** تُدرج مطابقة `suggested` وإشعار لكل صاحب بلاغ.
 
-**مصدر الإعدادات:** جدول `match_settings` (تعدّله لوحة الإدارة)، ويعود إلى
+**مصدر الإعدادات:** جدول `match_settings` (يُعدَّل من محرّر SQL)، ويعود إلى
 `supabase/functions/match-report/config.ts` إن تعذّرت قراءته.
 
 **Idempotent:** `matches_pair_unique` على `(lost, found)` و
@@ -211,7 +201,6 @@ webhook لا تنتج مطابقات أو إشعارات مكررة.
 | `/chat/:conversationId?` | المحادثات | تتطلب تسجيل الدخول |
 | `/notifications` | الإشعارات | تتطلب تسجيل الدخول |
 | `/me` | الملف الشخصي | تتطلب تسجيل الدخول |
-| `/admin` | لوحة الإدارة | `moderator` أو `admin` |
 
 الحارس الوحيد هو `src/components/ProtectedRoute.jsx`، وكل شاشة محمّلة بـ
 `React.lazy` داخل `Suspense`.
@@ -290,7 +279,7 @@ npm run test
 - **تحويل فلاتر البحث من وإلى URL** — بما فيه رحلة ذهاب وعودة كاملة.
 - **التحقق من نموذج البلاغ والصور** — العنوان والفئة والتاريخ والحجم والصيغة.
 - **درجة المطابقة وحدها الأدنى** — الأوزان، النافذة الزمنية، وحدودها.
-- **منع تكرار الرسائل والمحادثات والمطابقات والإبلاغات.**
+- **منع تكرار الرسائل والمحادثات والمطابقات.**
 - **الشاشات الرئيسية** — بما فيها التحقق من أن صفحة البلاغ لا تعرض رقم جوّال.
 
 الاختبارات تعمل دائمًا على المخزن التجريبي (`test.env` في `vite.config.js` يفرغ

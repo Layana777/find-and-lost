@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="لقيتها — سجّل ما فقدته أو ما وجدته داخل الحرم الجامعي، والنظام يطابق البلاغات تلقائيًا." />
     <meta name="theme-color" content="#f3f2f2" />
+    <!--
+      يطبّق الوضع المحفوظ قبل أول رسم فلا تومض الشاشة بالورق الفاتح ثم تنقلب.
+      بدون اختيار محفوظ لا يُكتب شيء، وتتكفّل prefers-color-scheme بالأمر.
+      يقابله src/hooks/useTheme.js — أي تغيير في المفتاح يُنقل إلى الاثنين.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var saved = localStorage.getItem('lageetha-theme')
+          if (saved === 'light' || saved === 'dark') {
+            document.documentElement.setAttribute('data-theme', saved)
+            document
+              .querySelector('meta[name="theme-color"]')
+              .setAttribute('content', saved === 'dark' ? '#1b1a19' : '#f3f2f2')
+          } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#1b1a19')
+          }
+        } catch (e) {
+          /* التخزين ممنوع: نتابع بتفضيل النظام */
+        }
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
