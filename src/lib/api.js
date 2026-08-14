@@ -711,6 +711,16 @@ export async function getProfileStats(userId) {
   }
 }
 
+/**
+ * عدّاد يضمن اسم قناة فريدًا لكل اشتراك.
+ *
+ * `supabase.channel(topic)` يُعيد القناة الموجودة إن تطابق الاسم، ولا يقبل
+ * إضافة `postgres_changes` بعد `subscribe()`. لذلك لو اشترك مكوّنان بالجدول
+ * والفلتر نفسيهما — أو أعاد React (StrictMode) تشغيل الـ effect قبل اكتمال
+ * الإزالة غير المتزامنة — يقع الخطأ ويسقط الشجرة. الاسم الفريد يمنع ذلك.
+ */
+let channelSeq = 0
+
 export function subscribeToTable({ table, filter, event = '*', onChange }) {
   if (!isSupabaseConfigured) {
     return demo.subscribeDemo((payload) => {
@@ -718,15 +728,30 @@ export function subscribeToTable({ table, filter, event = '*', onChange }) {
     })
   }
 
-  const channel = supabase
-    .channel(`rt:${table}:${filter || 'all'}`)
-    .on('postgres_changes', { event, schema: 'public', table, filter }, (payload) =>
-      onChange({ table, event: payload.eventType, row: payload.new || payload.old }),
-    )
-    .subscribe()
+  channelSeq += 1
+  const topic = `rt:${table}:${filter || 'all'}:${channelSeq}`
+
+  let channel = null
+  try {
+    channel = supabase
+      .channel(topic)
+      .on('postgres_changes', { event, schema: 'public', table, filter }, (payload) =>
+        onChange({ table, event: payload.eventType, row: payload.new || payload.old }),
+      )
+      .subscribe()
+  } catch (error) {
+    // التحديث اللحظي تحسين وليس شرطًا لعمل الشاشة: نسجّل الخطأ ونكمل
+    // بالبيانات المجلوبة عبر الاستعلامات بدل إسقاط الواجهة.
+    console.warn('تعذّر تفعيل التحديث اللحظي:', error)
+    return () => {}
+  }
 
   return () => {
-    supabase.removeChannel(channel)
+    try {
+      supabase.removeChannel(channel)
+    } catch {
+      // القناة أُزيلت مسبقًا — لا شيء يستدعي المعالجة.
+    }
   }
 }
 
