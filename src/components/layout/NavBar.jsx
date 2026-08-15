@@ -1,7 +1,9 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useChatWidget } from '../../context/ChatWidgetContext'
 import { useUnreadCount } from '../../hooks/useNotifications'
-import { formatNumber } from '../../lib/format'
+import { useConversationsUnreadCount } from '../../hooks/useConversation'
+import { formatNumber, toArabicDigits } from '../../lib/format'
 import { APP_NAME, APP_TAGLINE } from '../../lib/constants'
 
 const PUBLIC_LINKS = [
@@ -11,7 +13,6 @@ const PUBLIC_LINKS = [
 
 const PRIVATE_LINKS = [
   { to: '/reports/new', label: 'بلاغ جديد' },
-  { to: '/chat', label: 'المحادثات' },
   { to: '/notifications', label: 'الإشعارات', badge: true },
   { to: '/me', label: 'حسابي' },
 ]
@@ -23,6 +24,8 @@ const PRIVATE_LINKS = [
 export function NavBar() {
   const { isAuthenticated, isStaff, signOut } = useAuth()
   const { data: unread = 0 } = useUnreadCount()
+  const { count: chatUnread } = useConversationsUnreadCount()
+  const { toggleWidget } = useChatWidget()
   const navigate = useNavigate()
 
   const links = [
@@ -54,6 +57,18 @@ export function NavBar() {
           ) : null}
         </NavLink>
       ))}
+
+      {isAuthenticated ? (
+        <button type="button" className="nav-chat-btn" onClick={toggleWidget}>
+          المحادثات
+          {chatUnread > 0 ? (
+            <span className="nav-count">
+              <span className="sr-only">رسائل غير مقروءة: </span>
+              {chatUnread > 9 ? `${toArabicDigits(9)}+` : formatNumber(chatUnread)}
+            </span>
+          ) : null}
+        </button>
+      ) : null}
 
       {isAuthenticated ? (
         <button type="button" className="btn btn-secondary" onClick={handleSignOut}>

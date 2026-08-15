@@ -1313,6 +1313,171 @@ select.input {
   color: var(--ink-66);
 }
 
+/* ── زر الناف بار لفتح نافذة الشات العائمة ── */
+.nav-chat-btn {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 14px;
+  font-family: inherit;
+  color: inherit;
+}
+.nav-chat-btn:hover {
+  color: var(--color-accent);
+}
+
+/* ── نافذة الشات العائمة (بأسلوب أزرار واتساب الثابتة) ── */
+.chat-widget-root {
+  position: fixed;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 90;
+}
+.chat-fab {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 0;
+  cursor: pointer;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  box-shadow: var(--shadow-lg);
+}
+.chat-fab:hover {
+  background: var(--color-accent-600);
+}
+.chat-fab-badge {
+  position: absolute;
+  top: -4px;
+  inset-inline-end: -4px;
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  background: var(--color-accent-2);
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--color-bg);
+}
+.chat-widget-panel {
+  position: absolute;
+  inset-block-end: calc(56px + var(--space-2));
+  inset-inline-end: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 2 * var(--space-4)));
+  height: min(520px, calc(100vh - 120px));
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.chat-widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-accent);
+  color: var(--color-bg);
+  flex: none;
+}
+.chat-widget-head-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 17px;
+}
+.chat-widget-head .btn-ghost {
+  color: var(--color-bg);
+}
+.chat-widget-head .btn-ghost:hover {
+  background: color-mix(in srgb, #fff 20%, transparent);
+  color: var(--color-bg);
+}
+.chat-widget-guest,
+.chat-widget-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-70);
+}
+.chat-widget-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.chat-widget-conv-item {
+  width: 100%;
+  background: none;
+  border: 0;
+  border-bottom: var(--hairline);
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.chat-widget-thread-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.chat-widget-thread-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--hairline);
+  flex: none;
+}
+.chat-widget-thread-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-widget-thread {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--space-3);
+}
+.chat-widget-thread .composer {
+  padding: var(--space-2) var(--space-3);
+  margin: 0;
+}
+.chat-widget-thread .bubble-wrap {
+  max-width: 85%;
+}
+
+@media (max-width: 480px) {
+  .chat-widget-root {
+    inset-inline-end: var(--space-3);
+    inset-block-end: var(--space-3);
+  }
+  .chat-widget-panel {
+    width: calc(100vw - 2 * var(--space-3));
+    height: calc(100vh - 140px);
+  }
+}
+
 /* ── رفع الصور ── */
 .uploader-label {
   display: block;

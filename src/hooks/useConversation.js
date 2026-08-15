@@ -21,6 +21,13 @@ export function useConversations() {
   })
 }
 
+/** مجموع الرسائل غير المقروءة عبر كل المحادثات — لشارة زر الشات العائم والناف بار. */
+export function useConversationsUnreadCount() {
+  const conversations = useConversations()
+  const count = (conversations.data ?? []).reduce((sum, c) => sum + (c.unread || 0), 0)
+  return { count, isPending: conversations.isPending }
+}
+
 export function useConversation(id) {
   const { userId } = useAuth()
   return useQuery({

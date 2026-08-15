@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '../context/AuthContext'
+import { ChatWidgetProvider } from '../context/ChatWidgetContext'
 
 /** يغلّف المكوّن بكل السياقات التي يحتاجها التطبيق الحقيقي. */
 export function renderWithProviders(ui, { route = '/', signedIn = false } = {}) {
@@ -14,7 +15,9 @@ export function renderWithProviders(ui, { route = '/', signedIn = false } = {}) 
   const result = render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[route]}>
-        <AuthProvider>{ui}</AuthProvider>
+        <AuthProvider>
+          <ChatWidgetProvider>{ui}</ChatWidgetProvider>
+        </AuthProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   )
