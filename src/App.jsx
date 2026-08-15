@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { ScreenShell } from './components/layout/ScreenShell'
 import { TextSkeleton } from './components/ui/Skeleton'
 import { ScrollToTop } from './components/layout/ScrollToTop'
+import { ChatWidget } from './components/chat/ChatWidget'
 
 // تقسيم الكود حسب المسار: كل شاشة حزمة مستقلة
 const Landing = lazy(() => import('./pages/Landing'))
@@ -97,6 +98,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      <ChatWidget />
     </>
   )
 }
