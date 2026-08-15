@@ -5,6 +5,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ScreenShell } from "./components/layout/ScreenShell";
 import { TextSkeleton } from "./components/ui/Skeleton";
 import { ScrollToTop } from "./components/layout/ScrollToTop";
+import { ChatWidget } from "./components/chat/ChatWidget";
 
 // تقسيم الكود حسب المسار: كل شاشة حزمة مستقلة
 const Landing = lazy(() => import("./pages/Landing"));
@@ -97,6 +98,9 @@ export default function App() {
           </Routes>
         </Suspense>
       </ErrorBoundary>
+
+      {/* زر الشات العائم: خارج التوجيه ليبقى ثابتًا على كل الشاشات */}
+      <ChatWidget />
     </>
   );
 }
