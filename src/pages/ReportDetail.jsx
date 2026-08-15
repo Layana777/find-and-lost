@@ -187,7 +187,8 @@ export default function ReportDetail() {
               },
             ]}
             stamp={report.status === 'resolved' ? 'تم الاسترجاع' : null}
-            caption={`المكان كما كتبه الناشر: «${report.place}». الموقع على المخطّط تقريبي.`}
+            track={report.status !== 'resolved'}
+            caption={`المكان كما كتبه الناشر: «${report.place}». الموقع على المخطّط تقريبي، وزمن المشي محسوب على ممرّات الحرم.`}
           />
         </section>
       ) : null}

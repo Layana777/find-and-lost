@@ -2009,9 +2009,11 @@ input:focus-visible + .uploader-grid .uploader-empty.is-active,
 }
 
 /* ══ مخطّط الحرم ══════════════════════════════════════════════════════════
-   خريطة منقوشة لا خريطة أقمار صناعية: خطوط شعرية وحروف Amiri، بلا مفتاح
-   API ولا طلب خارجي. الهندسة SVG، والدبابيس HTML فوقها لأن النصّ العربي
-   يحتاج تخطيطًا حقيقيًا. مصدر المواقع src/lib/campus.js.
+   خريطة حرم مطبوعة لا خريطة أقمار صناعية: أرضٌ رمليّة، ومبانٍ ملوّنة بصنفها،
+   وممرّ أكاديمي أزرق، وشريط مدرّج بالحروف والأرقام، و«توضيح» في الزاوية —
+   بلا مفتاح API ولا طلب خارجي. الهندسة SVG، والنصوص HTML فوقها لأن النصّ
+   العربي يحتاج تخطيطًا حقيقيًا. مصدر المواقع والألوان: src/lib/campus.js
+   وسلّم ‎--map-*‎ في tokens.css.
    ══════════════════════════════════════════════════════════════════════ */
 .campus-map {
   margin: 0;
@@ -2023,10 +2025,12 @@ input:focus-visible + .uploader-grid .uploader-empty.is-active,
   overflow-x: auto;
   overflow-y: hidden;
 }
-/* المخطّط لا ينزل تحت هذا العرض وإلا صارت أسماء المواقع غير مقروءة */
+/* المخطّط لا ينزل تحت هذا العرض وإلا صارت أسماء المواقع غير مقروءة.
+   والقماشة حاوية استعلام: كل نصوص الخريطة تكبر وتصغر بعرضها كما لو طُبعت. */
 .campus-map-canvas {
   position: relative;
-  min-width: 560px;
+  min-width: 700px;
+  container-type: inline-size;
 }
 .campus-map-plan {
   display: block;
@@ -2034,42 +2038,176 @@ input:focus-visible + .uploader-grid .uploader-empty.is-active,
   height: auto;
 }
 
-.map-boundary {
-  fill: none;
-  stroke: var(--color-divider);
+/* ── الإطار المدرّج ── */
+.map-frame-outer {
+  fill: var(--color-surface);
+  stroke: var(--map-line);
   stroke-width: 2;
-  stroke-dasharray: 9 7;
 }
-.map-walks path {
+.map-frame-inner {
   fill: none;
-  stroke: color-mix(in srgb, var(--color-text) 16%, transparent);
-  stroke-width: 7;
+  stroke: var(--map-line);
+  stroke-width: 1.5;
+}
+.map-frame line {
+  stroke: var(--map-line);
+  stroke-width: 1.5;
+}
+.map-frame text {
+  font-family: var(--font-body);
+  font-size: 17px;
+  fill: var(--ink-60);
+  text-anchor: middle;
+}
+
+/* ── الأرض والطرق ── */
+.map-roads path {
+  fill: none;
+  stroke: var(--map-road);
+  stroke-width: 26;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-/* حدّ المبنى يبلغ 3:1: على الخريطة الشكلُ نفسه محتوى لا زينة */
-.map-block {
-  fill: color-mix(in srgb, var(--color-text) 7%, transparent);
-  stroke: var(--color-control-border);
+.map-roads circle {
+  fill: none;
+  stroke: var(--map-road);
+  stroke-width: 22;
+}
+/* شرطة منتصف الطريق */
+.map-road-lines path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  stroke-width: 2.5;
+  stroke-dasharray: 18 16;
+  stroke-linecap: round;
+}
+.map-land {
+  fill: var(--map-land);
+  stroke: color-mix(in srgb, var(--map-line) 45%, transparent);
   stroke-width: 1.5;
 }
-.map-block-plaza {
-  fill: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  stroke-dasharray: 5 5;
-}
-.map-gate circle {
-  fill: var(--color-bg);
-  stroke: var(--color-control-border);
-  stroke-width: 1.5;
-}
-.map-gate-core {
-  fill: var(--ink-45);
+.map-core {
+  fill: var(--map-core);
   stroke: none;
 }
-.map-labels text {
+
+/* الخضرة: مسطّحات على حافّة الأرض وأشجار في الجيوب المفتوحة */
+.map-greens path {
+  fill: color-mix(in srgb, var(--map-club) 30%, var(--map-land));
+  stroke: none;
+}
+.map-trees circle {
+  fill: color-mix(in srgb, var(--map-club) 62%, var(--map-land));
+  stroke: color-mix(in srgb, var(--map-club) 85%, var(--map-line));
+  stroke-width: 1.2;
+}
+
+/* ── الممرّات ── */
+.map-walks path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--map-line) 55%, transparent);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+.map-links path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--map-line) 42%, transparent);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.map-corridors path {
+  fill: none;
+  stroke: var(--map-corridor);
+  stroke-width: 20;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* حدّ المبنى بلون الحبر: على الخريطة الشكلُ نفسه محتوى لا زينة */
+.map-block {
+  stroke: color-mix(in srgb, var(--map-line) 75%, transparent);
+  stroke-width: 1.5;
+}
+.map-block-admin {
+  fill: var(--map-admin);
+}
+.map-block-humanities {
+  fill: var(--map-humanities);
+}
+.map-block-science {
+  fill: var(--map-science);
+}
+.map-block-service {
+  fill: var(--map-service);
+}
+.map-block-club {
+  fill: var(--map-club);
+  stroke: none;
+}
+.map-block-corridor {
+  fill: var(--map-corridor);
+}
+.map-block-parking,
+.map-block-gate {
+  fill: color-mix(in srgb, var(--map-core) 70%, var(--map-land));
+  stroke-dasharray: 5 4;
+}
+
+/* ── أسماء المواقع ── */
+.map-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
   font-family: var(--font-body);
-  font-size: 22px;
-  fill: var(--ink-70);
+  font-size: max(8px, 1.15cqw);
+  line-height: 1.2;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+  pointer-events: none;
+}
+/* الأصناف الفاتحة لا يقرأ عليها الأبيض */
+.map-label-light {
+  color: var(--map-label-strong);
+  text-shadow: none;
+}
+
+/* ── شارات البوابات والمواقف وصالات الدخول ── */
+.map-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: max(14px, 2.1cqw);
+  height: max(14px, 2.1cqw);
+  border-radius: 3px;
+  font-family: var(--font-body);
+  font-size: max(7px, 1.05cqw);
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+.map-badge-gate {
+  background: var(--map-gate);
+  border-radius: 50%;
+}
+.map-badge-parking {
+  background: var(--map-parking);
+}
+.map-badge-entry {
+  width: max(11px, 1.6cqw);
+  height: max(11px, 1.6cqw);
+  border-radius: 50%;
+  background: var(--map-gate);
+  opacity: 0.72;
+  font-size: max(6px, 0.9cqw);
+}
+.map-badge-name {
+  position: absolute;
+  top: 108%;
+  white-space: nowrap;
+  font-weight: 400;
+  font-size: max(7px, 1cqw);
+  color: var(--map-label);
 }
 
 /* ── الدبابيس ── */
@@ -2126,22 +2264,293 @@ input:focus-visible + .uploader-grid .uploader-empty.is-active,
   box-shadow: 0 0 0 3px var(--color-surface);
 }
 
-/* المسار بين الفقد والعثور: يُرسم رسمًا لا يظهر دفعة واحدة */
+/* مسار الغرض بين موضع الفقد وموضع العثور: منقّط بلون بلاغ الفقد، ويُرسم
+   رسمًا لا يظهر دفعة واحدة. يختلف عمدًا عن مسارك الأزرق أسفله. */
 .map-connector {
   fill: none;
-  stroke: var(--color-accent-600);
-  stroke-width: 2.5;
+  stroke: var(--color-accent-2-600);
+  stroke-width: 5;
   stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   animation: map-connector-draw 0.9s ease-out 0.5s both;
 }
 
+/* ── مسار المشي: من موقعك إلى مكان الغرض ──────────────────────────────
+   طبقتان: غلافٌ فاتح يفصل الخطّ عن ألوان المباني تحته، ثم الخطّ الأزرق
+   يزحف بالتقطيع في اتجاه السير، وقبله رأسٌ يجري على المسار نفسه.
+   ────────────────────────────────────────────────────────────────── */
+.map-route-casing {
+  fill: none;
+  stroke: var(--color-bg);
+  stroke-width: 15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+.map-route {
+  fill: none;
+  stroke: var(--color-accent-700);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: map-connector-draw 1s ease-out both;
+}
+.map-route-head {
+  fill: var(--color-accent-700);
+  stroke: var(--color-bg);
+  stroke-width: 4;
+  offset-rotate: 0deg;
+  animation: map-route-travel 3.4s linear 1s infinite;
+}
+
+/* موقع الشخص: نقطة نابضة لا دبّوس — الدبّوس للبلاغ وحده */
+.map-here {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+}
+.map-here-dot {
+  width: max(11px, 1.5cqw);
+  height: max(11px, 1.5cqw);
+  border-radius: 50%;
+  background: var(--color-accent-600);
+  box-shadow: 0 0 0 3px var(--color-bg);
+}
+.map-here-pulse {
+  position: absolute;
+  width: max(11px, 1.5cqw);
+  height: max(11px, 1.5cqw);
+  border-radius: 50%;
+  background: var(--color-accent-600);
+  animation: map-here-pulse 2s ease-out infinite;
+}
+.map-here-label {
+  position: absolute;
+  top: 118%;
+  padding: 2px 7px;
+  white-space: nowrap;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-600);
+  color: var(--color-bg);
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: max(9px, 1.15cqw);
+}
+
+/* لافتة الزمن — تجلس على منتصف المسار بطوله لا بترتيب نقاطه */
+.map-eta {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  border: 1.5px solid var(--color-accent-600);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-body);
+  font-size: max(9px, 1.15cqw);
+  line-height: 1.25;
+  color: var(--color-accent-800);
+  white-space: nowrap;
+  animation: map-eta-in 0.4s ease-out 0.9s both;
+}
+.map-eta strong {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+}
+.map-eta-distance {
+  font-size: max(8px, 0.95cqw);
+  color: var(--ink-60);
+}
+
+/* ── أسماء الطرق وعنوان الورقة ── */
+.map-road-name {
+  position: absolute;
+  transform-origin: center;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  font-size: max(7px, 0.95cqw);
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--map-label) 72%, transparent);
+  pointer-events: none;
+}
+.map-title {
+  position: absolute;
+  /* داخل الإطار المدرّج لا فوقه */
+  right: 4.5%;
+  top: 5.5%;
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  text-align: end;
+}
+.map-title-name {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: max(11px, 1.7cqw);
+  line-height: 1.15;
+  color: var(--map-label);
+}
+.map-title-sub {
+  font-family: var(--font-body);
+  font-size: max(7px, 0.95cqw);
+  letter-spacing: 0.04em;
+  color: var(--color-accent-2-700);
+}
+
+/* ── التوضيح (مفتاح الخريطة) ── */
+.map-legend {
+  position: absolute;
+  left: 2.6%;
+  bottom: 3.4%;
+  width: 21%;
+  padding: max(5px, 0.7cqw) max(6px, 0.9cqw);
+  border: 1px solid var(--map-line);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  font-family: var(--font-body);
+  font-size: max(7px, 0.95cqw);
+  line-height: 1.45;
+  color: var(--map-label);
+}
+.map-legend-title {
+  margin-bottom: 0.4em;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: max(8px, 1.1cqw);
+  color: var(--color-accent-2-700);
+}
+.map-legend ul {
+  display: grid;
+  gap: 0.18em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.map-legend-swatch {
+  flex: none;
+  width: max(8px, 1.1cqw);
+  height: max(6px, 0.8cqw);
+  border: 1px solid color-mix(in srgb, var(--map-line) 60%, transparent);
+}
+.map-swatch-admin {
+  background: var(--map-admin);
+}
+.map-swatch-humanities {
+  background: var(--map-humanities);
+}
+.map-swatch-science {
+  background: var(--map-science);
+}
+.map-swatch-service {
+  background: var(--map-service);
+}
+.map-swatch-club {
+  background: var(--map-club);
+}
+.map-swatch-corridor {
+  background: var(--map-corridor);
+}
+.map-swatch-gate {
+  background: var(--map-gate);
+  border-radius: 50%;
+}
+.map-swatch-parking {
+  background: var(--map-parking);
+}
+
+/* ── المقياس وسهم الشمال ── */
+.map-scale {
+  position: absolute;
+  right: 3%;
+  bottom: 4%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 'bar north' 'marks north';
+  align-items: center;
+  gap: 0 max(6px, 0.8cqw);
+  font-family: var(--font-body);
+  font-size: max(7px, 0.9cqw);
+  color: var(--map-label);
+}
+.map-scale-bar {
+  grid-area: bar;
+  display: flex;
+  height: max(4px, 0.5cqw);
+  border: 1px solid var(--map-line);
+}
+.map-scale-bar span {
+  flex: 1;
+}
+.map-scale-bar span:first-child {
+  background: var(--map-line);
+}
+.map-scale-marks {
+  grid-area: marks;
+  display: flex;
+  justify-content: space-between;
+}
+.map-north {
+  grid-area: north;
+  display: grid;
+  justify-items: center;
+}
+.map-north svg {
+  width: max(8px, 1cqw);
+  fill: var(--map-line);
+}
+
+/* ── أداة التتبّع تحت المخطّط ── */
+.map-track {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.map-track .field {
+  flex: 0 1 260px;
+  margin: 0;
+}
+.map-track-readout {
+  flex: 1 1 240px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding-bottom: 6px;
+  font-size: 14px;
+  color: var(--ink-75);
+}
+.map-track-line {
+  width: 26px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-accent-600);
+}
+
 /* ختم «تم الاسترجاع» — يهبط بعد استقرار الدبابيس */
 .map-stamp {
   position: absolute;
-  inset-inline-end: 4%;
-  bottom: 6%;
+  /* أعلى الورقة: أسفلها محجوز للتوضيح والمقياس */
+  inset-inline-end: 5%;
+  top: 5%;
   padding: 5px 15px;
   border: 2px solid var(--color-accent-700);
   border-radius: var(--radius-md);
@@ -2179,6 +2588,43 @@ input:focus-visible + .uploader-grid .uploader-empty.is-active,
 @keyframes map-connector-draw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+/* الرأس يجري على المسار نفسه: offset-path يأخذ إحداثيات المخطّط كما هي */
+@keyframes map-route-travel {
+  from {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  to {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+@keyframes map-here-pulse {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+}
+@keyframes map-eta-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
   }
 }
 @keyframes map-stamp-press {

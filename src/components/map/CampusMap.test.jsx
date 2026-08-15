@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { CampusMap } from './CampusMap'
 
 const LOST = { place: 'أمام المكتبة المركزية — البوابة ٢', tone: 'lost', label: 'فُقد هنا' }
@@ -53,6 +54,42 @@ describe('CampusMap', () => {
     )
     expect(container.querySelectorAll('.map-pin')).toHaveLength(0)
     expect(screen.queryByText(/خارج المواقع/)).toBeNull()
+  })
+
+  it('لا يعرض أداة التتبّع دون طلبها', () => {
+    render(<CampusMap points={[LOST]} />)
+    expect(screen.queryByLabelText('أين أنت الآن؟')).toBeNull()
+  })
+
+  it('يرسم مسار المشي بالدقائق بعد اختيار موقع الشخص', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<CampusMap points={[LOST]} track />)
+
+    expect(container.querySelector('.map-route')).toBeNull()
+    await user.selectOptions(screen.getByLabelText('أين أنت الآن؟'), 'gate-3')
+
+    expect(container.querySelector('.map-route')).toBeTruthy()
+    expect(screen.getByText('أنت هنا')).toBeInTheDocument()
+    // الزمن يُعرض على المخطّط وفي السطر تحته معًا
+    expect(container.querySelector('.map-eta')).toBeTruthy()
+    expect(container.querySelector('.map-track-readout').textContent).toMatch(/دقائق|دقيقة/)
+  })
+
+  it('يتتبّع إلى موضع العثور لا موضع الفقد — فهناك الغرض الآن', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<CampusMap points={[LOST, FOUND]} connect track />)
+    await user.selectOptions(screen.getByLabelText('أين أنت الآن؟'), 'gate-3')
+    const readout = container.querySelector('.map-track-readout').textContent
+    expect(readout).toContain('المطعم الرئيسي')
+    expect(readout).not.toContain('المكتبة المركزية')
+  })
+
+  it('يقول للواقف في المكان نفسه إنه وصل بدل أن يرسم مسارًا', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<CampusMap points={[LOST]} track />)
+    await user.selectOptions(screen.getByLabelText('أين أنت الآن؟'), 'library')
+    expect(container.querySelector('.map-route')).toBeNull()
+    expect(screen.getByText(/الموقع نفسه/)).toBeInTheDocument()
   })
 
   it('المخطّط نفسه مخفيّ عن قارئ الشاشة — النصّ في اللافتات والتعليق', () => {

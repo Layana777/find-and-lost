@@ -66,7 +66,8 @@ export default function Landing() {
         <CampusMap
           points={SAMPLE_TRAIL}
           connect
-          caption="كل بلاغ يظهر على مخطّط الحرم، ويُرسم مسار الغرض من موضع فقده إلى موضع العثور عليه."
+          track
+          caption="كل بلاغ يظهر على مخطّط الحرم، ويُرسم مسار الغرض من موضع فقده إلى موضع العثور عليه — واختر موقعك لترى كم دقيقة تفصلك عنه."
         />
       </section>
 
@@ -103,7 +104,7 @@ export default function Landing() {
 
       <section className="landing-privacy">
         <div>
-          <h2 className="landing-privacy-title">الخصوصية</h2>
+          <h2 className="landing-privacy-title">الخصوصية والأمان</h2>
           <p className="landing-privacy-body">
             كل التواصل يجري داخل التطبيق. أنت من يقرّر متى تبدأ المحادثة ومتى
             تُغلق البلاغ， ولا يصل أحد إليك خارجه.

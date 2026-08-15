@@ -61,6 +61,28 @@
   --shadow-a2: 16%;
   --shadow-a3: 22%;
 
+  /* ── ألوان مخطّط الحرم ──────────────────────────────────────────────
+     الاستثناء الوحيد للوحة الأربعة أعلاه، ومبرّره أن الخريطة تصنيف لا زينة:
+     لون كل صنف مبانٍ هو ما يقرأه الناظر في «التوضيح»، ولا يمكن أن تُصنّف
+     تسعة أصناف بلونين. الأسماء تقابل ‎kind‎ في src/lib/campus.js حرفًا بحرف.
+     ────────────────────────────────────────────────────────────────── */
+  --map-land: #ece2d1;
+  --map-core: #e0d3bd;
+  --map-road: #d0cbc4;
+  --map-label: #3a322c;
+  /* حبر الأسماء على الأصباغ الفاتحة: لا ينقلب في طبعة الليل لأن تلك الأصباغ
+     تبقى فاتحة في الوضعين، فلو انقلب لغاب النصّ عن المبنى */
+  --map-label-strong: #2a2420;
+  --map-line: #6b6157;
+  --map-admin: #a13cb0;
+  --map-humanities: #f28fbc;
+  --map-science: #e5197c;
+  --map-service: #a96a3f;
+  --map-club: #57c34c;
+  --map-corridor: #22b3e6;
+  --map-gate: #16a34a;
+  --map-parking: #2f7fd0;
+
   /* الخطوط: Amiri للعناوين، Noto Naskh Arabic للنصوص */
   --font-heading: 'Amiri', 'Source Serif 4', serif;
   --font-heading-weight: 700;
@@ -137,6 +159,21 @@
     --shadow-a1: 40%;
     --shadow-a2: 46%;
     --shadow-a3: 58%;
+
+    /* الخريطة في طبعة الليل: نفس الأصناف، ورقٌ داكن وأصباغ أخفض إضاءة */
+    --map-land: #322e28;
+    --map-core: #3b362d;
+    --map-road: #46423d;
+    --map-label: #e6dfd4;
+    --map-line: #9b9188;
+    --map-admin: #a558b4;
+    --map-humanities: #d97ba6;
+    --map-science: #d63b86;
+    --map-service: #a3714c;
+    --map-club: #56ab52;
+    --map-corridor: #3bb4e0;
+    --map-gate: #3aa864;
+    --map-parking: #4a87c9;
   }
 }
 
@@ -188,6 +225,21 @@
   --shadow-a1: 40%;
   --shadow-a2: 46%;
   --shadow-a3: 58%;
+
+  /* الخريطة في طبعة الليل: نفس الأصناف، ورقٌ داكن وأصباغ أخفض إضاءة */
+  --map-land: #322e28;
+  --map-core: #3b362d;
+  --map-road: #46423d;
+  --map-label: #e6dfd4;
+  --map-line: #9b9188;
+  --map-admin: #a558b4;
+  --map-humanities: #d97ba6;
+  --map-science: #d63b86;
+  --map-service: #a3714c;
+  --map-club: #56ab52;
+  --map-corridor: #3bb4e0;
+  --map-gate: #3aa864;
+  --map-parking: #4a87c9;
 }
 
 /* ── قيم مشتقّة: تُحسب من الرموز أعلاه فتتبع الوضعين تلقائيًا ── */
