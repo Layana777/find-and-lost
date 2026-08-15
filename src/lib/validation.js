@@ -2,15 +2,18 @@
  * تحقّق موحّد من المدخلات. كل دالة تعيد كائن أخطاء `{ حقل: رسالة }` فارغًا
  * عند السلامة، فتستعمله النماذج بنفس الطريقة.
  */
+import { detectIdentifier, normalizePhone } from './identity'
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-const PHONE_RE = /^\+?[0-9 ()-]{7,20}$/
-
-export function validateAuth({ mode, email, password, fullName, phone }) {
+/**
+ * حقل الدخول واحد يقبل بريدًا أو رقم جوّال، والتمييز بينهما في `identity.js`
+ * حتى تتطابق قواعد القبول بين النموذج وطبقة البيانات وقاعدة البيانات.
+ */
+export function validateAuth({ mode, identifier, password, fullName, phone }) {
   const errors = {}
 
-  if (!email?.trim()) errors.email = 'البريد مطلوب.'
-  else if (!EMAIL_RE.test(email.trim())) errors.email = 'صيغة البريد غير صحيحة.'
+  const id = detectIdentifier(identifier)
+  if (id.kind === 'empty') errors.identifier = 'اكتب بريدك الجامعي أو رقم جوّالك.'
+  else if (id.kind === 'invalid') errors.identifier = 'صيغة البريد أو رقم الجوّال غير صحيحة.'
 
   if (!password) errors.password = 'كلمة المرور مطلوبة.'
   else if (password.length < 8) errors.password = 'كلمة المرور ٨ أحرف على الأقل.'
@@ -18,7 +21,8 @@ export function validateAuth({ mode, email, password, fullName, phone }) {
   if (mode === 'signup') {
     if (!fullName?.trim()) errors.fullName = 'الاسم مطلوب.'
     else if (fullName.trim().length < 3) errors.fullName = 'اكتب الاسم كاملًا.'
-    if (phone?.trim() && !PHONE_RE.test(phone.trim())) errors.phone = 'صيغة رقم الجوّال غير صحيحة.'
+    // الحقل الاختياري يظهر فقط لمن سجّل ببريده
+    if (phone?.trim() && !normalizePhone(phone)) errors.phone = 'صيغة رقم الجوّال غير صحيحة.'
   }
 
   return errors
@@ -54,7 +58,7 @@ export function validateProfile({ full_name, phone }) {
   const errors = {}
   if (!full_name?.trim()) errors.full_name = 'الاسم مطلوب.'
   else if (full_name.trim().length > 80) errors.full_name = 'الاسم أطول من ٨٠ حرفًا.'
-  if (phone?.trim() && !PHONE_RE.test(phone.trim())) errors.phone = 'صيغة رقم الجوّال غير صحيحة.'
+  if (phone?.trim() && !normalizePhone(phone)) errors.phone = 'صيغة رقم الجوّال غير صحيحة.'
   return errors
 }
 

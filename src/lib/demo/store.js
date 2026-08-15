@@ -4,7 +4,7 @@ import { scoreReports, isEligiblePair, meetsThreshold } from '../matching'
 
 /**
  * مخزن الوضع التجريبي: قاعدة بيانات صغيرة في الذاكرة تحاكي نفس عمليات
- * Supabase (قراءة، إنشاء، مطابقة، محادثات، إشعارات، إشراف) حتى يعمل التصميم
+ * Supabase (قراءة، إنشاء، مطابقة، محادثات، إشعارات) حتى يعمل التصميم
  * بالكامل قبل الربط. ما ينشئه المستخدم يُحفظ في localStorage فيبقى بعد التحديث.
  */
 
@@ -155,40 +155,8 @@ export async function demoListCategories() {
   )
 }
 
-export async function demoCreateCategory(name) {
-  const d = load()
-  const trimmed = name.trim()
-  if (!trimmed) throw new Error('اكتب اسم الفئة.')
-  if (d.categories.some((c) => c.name === trimmed)) throw new Error('هذه الفئة موجودة مسبقًا.')
-  const row = {
-    id: uid('cat'),
-    name: trimmed,
-    slug: uid('slug'),
-    sort_order: d.categories.length + 1,
-    is_active: true,
-  }
-  d.categories.push(row)
-  emit('categories', 'INSERT', row)
-  return delay(clone(row))
-}
-
-export async function demoDeleteCategory(id) {
-  const d = load()
-  const cat = d.categories.find((c) => c.id === id)
-  if (cat) cat.is_active = false
-  emit('categories', 'UPDATE', cat)
-  return delay(null)
-}
-
 export async function demoGetMatchSettings() {
   const d = load()
-  return delay(clone(d.match_settings))
-}
-
-export async function demoUpdateMatchSettings(patch) {
-  const d = load()
-  Object.assign(d.match_settings, patch)
-  emit('match_settings', 'UPDATE', d.match_settings)
   return delay(clone(d.match_settings))
 }
 
@@ -283,7 +251,6 @@ export async function demoDeleteReport(id) {
   const d = load()
   d.reports = d.reports.filter((r) => r.id !== id)
   d.report_images = d.report_images.filter((i) => i.report_id !== id)
-  d.report_flags = d.report_flags.filter((f) => f.report_id !== id)
   emit('reports', 'DELETE', { id })
   return delay(null)
 }
@@ -634,67 +601,3 @@ export async function demoProfileStats(userId = DEMO_USER_ID) {
   })
 }
 
-// ── الإشراف ───────────────────────────────────────────────────────────────
-
-export async function demoCreateFlag({ reportId, reason, details }) {
-  const d = load()
-  if (d.report_flags.some((f) => f.report_id === reportId && f.reporter_id === DEMO_USER_ID)) {
-    throw new Error('سبق أن أبلغت عن هذا البلاغ.')
-  }
-  const report = d.reports.find((r) => r.id === reportId)
-  const row = {
-    id: uid('f'),
-    report_id: reportId,
-    reporter_id: DEMO_USER_ID,
-    reason,
-    details: details || '',
-    status: 'pending',
-    created_at: new Date().toISOString(),
-    report_label: report ? report.title : 'بلاغ محذوف',
-  }
-  d.report_flags.unshift(row)
-  emit('report_flags', 'INSERT', row)
-  return delay(clone(row))
-}
-
-export async function demoListFlags(status = 'pending') {
-  const d = load()
-  const rows = d.report_flags
-    .filter((f) => (status === 'all' ? true : f.status === status))
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .map((f) => ({ ...f, reporter: profileOf(f.reporter_id) }))
-  return delay(clone(rows))
-}
-
-export async function demoModerateFlag(flagId, action) {
-  const d = load()
-  const flag = d.report_flags.find((f) => f.id === flagId)
-  if (!flag) throw new Error('الإبلاغ غير موجود.')
-
-  if (action === 'close_report') {
-    const r = d.reports.find((x) => x.id === flag.report_id)
-    if (r) r.status = 'closed'
-  } else if (action === 'delete_report') {
-    d.reports = d.reports.filter((x) => x.id !== flag.report_id)
-    d.report_images = d.report_images.filter((i) => i.report_id !== flag.report_id)
-  }
-
-  if (action === 'delete_report') {
-    d.report_flags = d.report_flags.filter((f) => f.report_id !== flag.report_id)
-  } else {
-    flag.status = 'resolved'
-    flag.resolved_at = new Date().toISOString()
-  }
-  emit('report_flags', 'UPDATE', flag)
-  return delay(null)
-}
-
-export async function demoAdminStats() {
-  const d = load()
-  return delay({
-    total: d.reports.length,
-    active: d.reports.filter((r) => r.status === 'active').length,
-    suggested: d.matches.filter((m) => m.status === 'suggested').length,
-    pendingFlags: d.report_flags.filter((f) => f.status === 'pending').length,
-  })
-}

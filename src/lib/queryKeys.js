@@ -24,6 +24,4 @@ export const qk = {
   profile: (userId) => ['profile', userId],
   profileStats: (userId) => ['profile-stats', userId],
 
-  adminStats: () => ['admin-stats'],
-  adminFlags: (status) => ['admin-flags', status],
 }

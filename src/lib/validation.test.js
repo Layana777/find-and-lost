@@ -55,29 +55,29 @@ describe('validateReport', () => {
 describe('validateAuth', () => {
   it('يقبل دخولًا صحيحًا', () => {
     expect(
-      validateAuth({ mode: 'signin', email: 'a@university.edu', password: 'password1' }),
+      validateAuth({ mode: 'signin', identifier: 'a@university.edu', password: 'password1' }),
     ).toEqual({})
   })
 
   it('يرفض بريدًا بصيغة خاطئة', () => {
-    expect(validateAuth({ mode: 'signin', email: 'not-an-email', password: 'password1' }).email)
+    expect(validateAuth({ mode: 'signin', identifier: 'not-an-email', password: 'password1' }).identifier)
       .toBeTruthy()
   })
 
   it('يرفض كلمة مرور أقصر من ٨ أحرف', () => {
-    expect(validateAuth({ mode: 'signin', email: 'a@b.edu', password: 'short' }).password)
+    expect(validateAuth({ mode: 'signin', identifier: 'a@b.edu', password: 'short' }).password)
       .toBeTruthy()
   })
 
   it('يوجب الاسم عند إنشاء حساب', () => {
-    const errors = validateAuth({ mode: 'signup', email: 'a@b.edu', password: 'password1' })
+    const errors = validateAuth({ mode: 'signup', identifier: 'a@b.edu', password: 'password1' })
     expect(errors.fullName).toBeTruthy()
   })
 
   it('يرفض رقم جوّال بصيغة خاطئة عند التسجيل', () => {
     const errors = validateAuth({
       mode: 'signup',
-      email: 'a@b.edu',
+      identifier: 'a@b.edu',
       password: 'password1',
       fullName: 'عبدالله الزهراني',
       phone: 'ليس رقمًا',
@@ -88,7 +88,7 @@ describe('validateAuth', () => {
   it('يقبل رقم جوّال بصيغة دولية', () => {
     const errors = validateAuth({
       mode: 'signup',
-      email: 'a@b.edu',
+      identifier: 'a@b.edu',
       password: 'password1',
       fullName: 'عبدالله الزهراني',
       phone: '+966 55 412 8830',

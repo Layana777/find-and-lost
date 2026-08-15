@@ -151,19 +151,6 @@ export const MATCH_STATUS_LABEL = {
   rejected: 'مستبعدة',
 }
 
-export const FLAG_REASON_LABEL = {
-  spam: 'إزعاج أو رسائل مكرّرة',
-  fake: 'محتوى مضلل أو بلاغ وهمي',
-  inappropriate: 'محتوى غير لائق',
-  other: 'سبب آخر',
-}
-
-export const FLAG_STATUS_LABEL = {
-  pending: 'معلّق',
-  reviewing: 'قيد المراجعة',
-  resolved: 'مُعالج',
-}
-
 export const SCORE_FACTOR_LABEL = {
   category: 'الفئة',
   place: 'المكان',

@@ -8,6 +8,7 @@ import { ErrorState } from '../components/ui/ErrorState'
 import { EmptyState } from '../components/ui/EmptyState'
 import { MatchCompare } from '../components/match/MatchCompare'
 import { ScoreBreakdown } from '../components/match/ScoreBreakdown'
+import { CampusMap } from '../components/map/CampusMap'
 import { useMatch, useConfirmMatch, useRejectMatch } from '../hooks/useMatches'
 import { useAuth } from '../context/AuthContext'
 import { formatPercent, formatRelative, MATCH_STATUS_LABEL } from '../lib/format'
@@ -79,6 +80,21 @@ export default function Match() {
       <div style={{ marginTop: 34 }}>
         <MatchCompare match={match} userId={userId} />
       </div>
+
+      {match.lost_report.place || match.found_report.place ? (
+        <section className="reveal" style={{ marginTop: 40 }}>
+          <h2 className="section-label">مسار الغرض</h2>
+          <CampusMap
+            points={[
+              { place: match.lost_report.place, tone: 'lost', label: 'فُقد هنا' },
+              { place: match.found_report.place, tone: 'found', label: 'وُجد هنا' },
+            ]}
+            connect
+            stamp={match.status === 'confirmed' ? 'تم التسليم' : null}
+            caption="المسافة بين الموقعين أحد ما تقيسه درجة التطابق — وزن المكان ٣٠ من ١٠٠."
+          />
+        </section>
+      ) : null}
 
       <div className="match-footer">
         <div>
